@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#07111f" />
+  <meta name="application-name" content="DriveLedger" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="DriveLedger" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="description" content="Local-first profit tracker, mileage ledger, screenshot scanner, and order decision assistant for gig delivery drivers." />
+  <title>DriveLedger</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#tab-today">Skip to main content</a>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Gig Driver Command Center</p>
+        <h1>DriveLedger</h1>
+      </div>
+      <button id="shiftBtn" class="ghost-btn" type="button" aria-label="Start or end today's driving shift">Start Day</button>
+    </header>
+
+    <div id="offlineBanner" class="offline-banner hidden" role="status" aria-live="polite">Offline mode is active. Tracking, history, analytics, and exports still work; screenshot OCR may need internet if the OCR library has not loaded yet.</div>
+
+    <main>
+      <section id="tab-today" class="tab-screen active">
+        <section id="todayHero" class="hero-card status-neutral">
+          <div class="hero-row">
+            <div>
+              <p class="label">Today earned</p>
+              <div id="todayEarned" class="money">$0.00</div>
+              <p id="profitLine" class="subline">Estimated profit $0.00</p>
+            </div>
+            <div class="goal-pill"><span id="goalPercent">0%</span></div>
+          </div>
+          <div class="progress-wrap" aria-label="Daily goal progress">
+            <div id="goalBar" class="progress-bar"></div>
+          </div>
+          <div class="goal-line">
+            <span>Goal <strong id="goalText">$200.00</strong></span>
+            <span id="shiftStatus">No active shift</span>
+          </div>
+          <div class="hero-shift-row">
+            <span id="heroStatusLabel" class="status-chip">No data yet</span>
+            <button id="heroShiftBtn" class="ghost-btn compact" type="button" aria-label="Start or end today's driving shift from the dashboard">Start Day</button>
+          </div>
+          <p id="goalRemaining" class="insight">Set a goal and add your first delivery.</p>
+        </section>
+
+        <section class="quick-actions big-actions luxury-actions" aria-label="Primary driver actions">
+          <button id="quickAddOpenBtn" class="primary-btn" data-quick-add-open type="button" aria-label="Quick add from a delivery screenshot">Quick Screenshot</button>
+          <details class="tool-disclosure">
+            <summary>More tools</summary>
+            <div class="tool-disclosure-actions">
+              <button class="secondary-btn" data-open-add="manual" type="button" aria-label="Open manual delivery entry">Manual Entry</button>
+              <button class="secondary-btn" data-tab-jump="decide" type="button" aria-label="Open the accept calculator">Accept Calculator</button>
+            </div>
+          </details>
+        </section>
+
+        <details id="todayInsightsDrawer" class="luxury-disclosure today-insights-drawer">
+          <summary>Advanced insights</summary>
+          <div class="luxury-disclosure-body">
+        <section class="command-card-grid" aria-label="Today command center metrics">
+          <article id="paceCard" class="command-card status-neutral">
+            <div class="command-card-head">
+              <p class="label">Pace</p>
+              <span id="paceStatus" class="status-chip">Waiting for data</span>
+            </div>
+            <div class="metric-row"><span>Estimated profit</span><strong id="profitToday">$0.00</strong></div>
+            <div class="metric-row"><span>Gross / hour</span><strong id="avgHour">$0.00</strong></div>
+            <div class="metric-row"><span>Profit / hour</span><strong id="profitHour">$0.00</strong></div>
+            <div class="metric-row"><span>Projected today</span><strong id="projectedTotal">$0.00</strong></div>
+            <div class="metric-row"><span>Goal ETA</span><strong id="goalEta">—</strong></div>
+            <p id="paceRecommendation" class="card-note">Start a shift and save a delivery to calculate live pace.</p>
+          </article>
+
+          <article id="efficiencyCard" class="command-card status-neutral">
+            <div class="command-card-head">
+              <p class="label">Efficiency</p>
+              <span id="efficiencyStatus" class="status-chip">No miles yet</span>
+            </div>
+            <div class="metric-row"><span>Gross / mile</span><strong id="avgMile">$0.00</strong></div>
+            <div class="metric-row"><span>Profit / mile</span><strong id="profitMile">$0.00</strong></div>
+            <div class="metric-row"><span>Business miles</span><strong id="milesToday">0.0</strong></div>
+            <div class="metric-row"><span>Avg delivery</span><strong id="avgDeliveryValue">$0.00</strong></div>
+            <p id="efficiencyRecommendation" class="card-note">Use miles on every delivery to keep profit accurate.</p>
+          </article>
+
+          <article id="taxCard" class="command-card status-neutral">
+            <div class="command-card-head">
+              <p class="label">Tax estimate</p>
+              <span id="taxRateLabel" class="status-chip">$0.67/mi</span>
+            </div>
+            <div class="metric-row"><span>Mileage deduction</span><strong id="taxDeduction">$0.00</strong></div>
+            <div class="metric-row"><span>Tracked miles</span><strong id="taxMiles">0.0 mi</strong></div>
+            <div class="metric-row"><span>Vehicle cost</span><strong id="vehicleCostToday">$0.00</strong></div>
+            <div class="metric-row"><span>Deliveries</span><strong id="ordersCount">0</strong></div>
+            <p id="taxRecommendation" class="card-note">Tax and cost numbers are estimates based on Settings.</p>
+          </article>
+
+          <article id="performanceCard" class="command-card status-neutral">
+            <div class="command-card-head">
+              <p class="label">Performance</p>
+              <div class="score-pill"><span id="driverScore">0</span><small>/100</small></div>
+            </div>
+            <div class="metric-row"><span>Best company</span><strong id="bestCompanyToday">—</strong></div>
+            <div class="metric-row"><span>Worst company</span><strong id="worstCompanyToday">—</strong></div>
+            <div class="metric-row"><span>Best zone</span><strong id="bestZoneToday">—</strong></div>
+            <div class="metric-row"><span>Worst zone</span><strong id="worstZoneToday">—</strong></div>
+            <div class="metric-row"><span>Time working</span><strong id="timeWorking">0h 00m</strong></div>
+            <h2 id="driverScoreTitle">No score yet</h2>
+            <p id="driverScoreDetail" class="card-note">Start a shift and save deliveries to get live feedback.</p>
+            <p id="performanceRecommendation" class="card-note accent-note">Add your first delivery to unlock platform and zone coaching.</p>
+          </article>
+        </section>
+
+        <section class="trend-card">
+          <p class="label">Last delivery impact</p>
+          <h2 id="trendTitle">No deliveries yet</h2>
+          <p id="trendDetail">After each delivery, DriveLedger shows whether that delivery helped or hurt your average.</p>
+        </section>
+
+        <section id="dailyRecapCard" class="panel mini-report recap-card status-neutral">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Driver coaching</p>
+              <h2>Daily recap</h2>
+            </div>
+            <button id="copySummaryBtn" class="ghost-btn compact" type="button">Copy Recap</button>
+          </div>
+          <span id="recapStatus" class="status-chip">No data yet</span>
+          <div id="recapMetrics" class="recap-metrics" aria-label="Daily recap metrics"></div>
+          <div id="dailySummary" class="summary-box">No shift data yet.</div>
+          <div id="recapRecommendation" class="recap-advice">Add your first delivery to unlock local coaching.</div>
+          <details class="shift-history-panel">
+            <summary>Saved shift history</summary>
+            <div id="shiftHistoryList" class="shift-history-list empty">No saved shift recaps yet.</div>
+          </details>
+        </section>
+
+        <section class="panel mini-report secondary-today-panel">
+          <details id="todayBreakdownsDetails" class="mobile-details">
+            <summary>
+              <span>Today breakdowns</span>
+              <small>Company and zone performance</small>
+            </summary>
+            <div class="today-breakdown-grid">
+              <article>
+                <h2>By company today</h2>
+                <div id="companyBreakdown" class="breakdown empty">No company data yet. Add a delivery to compare platforms.</div>
+              </article>
+              <article>
+                <h2>By zone today</h2>
+                <div id="zoneBreakdown" class="breakdown empty">No zone data yet. Add a zone to compare where you earn best.</div>
+              </article>
+            </div>
+          </details>
+        </section>
+          </div>
+        </details>
+      </section>
+
+      <section id="tab-add" class="tab-screen">
+        <section class="panel">
+          <h2>Add delivery</h2>
+          <p class="muted">Scan a screenshot or type the basics. Company, earnings, and miles are the only required fields.</p>
+
+          <label class="file-drop" for="screenshotInput">
+            <input id="screenshotInput" type="file" accept="image/*" />
+            <span>📸 Select screenshot</span>
+            <small>DoorDash, Uber Eats, Grubhub, catering apps, and more</small>
+          </label>
+
+          <div id="scanStatus" class="scan-status hidden" aria-live="polite">Scanning screenshot…</div>
+          <img id="previewImage" class="preview hidden" alt="Screenshot preview" />
+          <article id="ocrReview" class="review-card hidden" aria-live="polite">
+            <div class="review-card-head">
+              <div>
+                <p class="label">Detected delivery</p>
+                <h3>Review before saving</h3>
+              </div>
+              <span id="ocrConfidenceLabel" class="status-chip">Needs review</span>
+            </div>
+            <div class="review-grid readonly-review" aria-label="OCR detection summary">
+              <div><span>Company</span><strong id="ocrCompany">—</strong></div>
+              <div><span>Restaurant</span><strong id="ocrMerchant">—</strong></div>
+              <div><span>Earnings</span><strong id="ocrEarnings">—</strong></div>
+              <div><span>Miles</span><strong id="ocrMiles">—</strong></div>
+              <div><span>Minutes</span><strong id="ocrMinutes">—</strong></div>
+              <div><span>Confidence</span><strong id="ocrConfidence">—</strong></div>
+            </div>
+            <div class="ocr-edit-grid" aria-label="Editable OCR fields">
+              <label>Company
+                <select id="ocrCompanyInput">
+                  <option value="DoorDash">DoorDash</option>
+                  <option value="Uber Eats">Uber Eats</option>
+                  <option value="Grubhub">Grubhub</option>
+                  <option value="Catering">Catering</option>
+                  <option value="Instacart">Instacart</option>
+                  <option value="Spark">Spark</option>
+                  <option value="Roadie">Roadie</option>
+                  <option value="Other">Other</option>
+                </select>
+              </label>
+              <label>Restaurant / store
+                <input id="ocrMerchantInput" type="text" autocomplete="off" placeholder="Chipotle, McDonald's, local café…" />
+              </label>
+              <label>Earnings
+                <input id="ocrEarningsInput" type="text" inputmode="decimal" placeholder="14.25" />
+              </label>
+              <label>Miles
+                <input id="ocrMilesInput" type="text" inputmode="decimal" placeholder="6.8" />
+              </label>
+              <label>Minutes
+                <input id="ocrMinutesInput" type="text" inputmode="numeric" enterkeyhint="done" placeholder="31" />
+              </label>
+            </div>
+            <div id="ocrSavePreview" class="delivery-preview">Review the detected fields before saving.</div>
+            <div class="inline-actions ocr-actions">
+              <button id="saveOcrBtn" class="primary-btn compact" type="button">Save Reviewed</button>
+              <button id="applyOcrBtn" class="secondary-btn compact" type="button">Use in Form</button>
+              <button id="cancelOcrBtn" class="ghost-btn compact" type="button">Cancel</button>
+              <button id="clearOcrBtn" class="secondary-btn compact" type="button">Clear Scan</button>
+            </div>
+          </article>
+          <details id="ocrDetails" class="ocr-details hidden">
+            <summary>View scanned text</summary>
+            <pre id="ocrText"></pre>
+          </details>
+        </section>
+
+        <form id="deliveryForm" class="panel form-panel" novalidate>
+          <input id="editDeliveryId" type="hidden" />
+          <label>Company
+            <select id="companyInput" required>
+              <option value="DoorDash">DoorDash</option>
+              <option value="Uber Eats">Uber Eats</option>
+              <option value="Grubhub">Grubhub</option>
+              <option value="Catering">Catering</option>
+              <option value="Instacart">Instacart</option>
+              <option value="Spark">Spark</option>
+              <option value="Roadie">Roadie</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+
+          <div class="two-col">
+            <label>Earnings
+              <input id="earningsInput" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next" placeholder="18.75" required />
+            </label>
+            <label>Miles
+              <input id="milesInput" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next" placeholder="5.4" required />
+            </label>
+          </div>
+
+          <div class="two-col">
+            <label>Minutes optional
+              <input id="minutesInput" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" placeholder="28" />
+            </label>
+            <label>Zone
+              <input id="zoneInput" type="text" list="zoneOptions" autocomplete="off" placeholder="South City" />
+            </label>
+          </div>
+
+          <details class="form-extra-details">
+            <summary>More details</summary>
+            <label>Restaurant / store optional
+              <input id="merchantInput" type="text" autocomplete="off" placeholder="Chipotle, McDonald's, local café…" />
+            </label>
+            <label>Notes optional
+              <input id="notesInput" type="text" autocomplete="off" placeholder="Apartment wait, catering batch, parking notes…" />
+            </label>
+          </details>
+
+          <div id="deliveryPreview" class="delivery-preview">Enter earnings and miles to preview profit.</div>
+          <div class="inline-actions">
+            <button id="saveDeliveryBtn" class="primary-btn full" type="submit">Save Delivery</button>
+            <button id="saveAddAnotherBtn" class="secondary-btn full" type="button">Save + Add Another</button>
+            <button id="cancelEditBtn" class="secondary-btn full hidden" type="button">Cancel Edit</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="tab-decide" class="tab-screen">
+        <section class="panel form-panel">
+          <h2>Accept calculator</h2>
+          <p class="muted">Enter an order before accepting it. DriveLedger compares the offer against your minimum $/mile, $/hour, payout, and distance rules.</p>
+          <div class="two-col">
+            <label>Offer pay
+              <input id="offerPayInput" type="text" inputmode="decimal" autocomplete="off" placeholder="9.75" />
+            </label>
+            <label>Miles
+              <input id="offerMilesInput" type="text" inputmode="decimal" autocomplete="off" placeholder="4.2" />
+            </label>
+          </div>
+          <div class="two-col">
+            <label>Estimated minutes
+              <input id="offerMinutesInput" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="next" placeholder="22" />
+            </label>
+            <label>Company
+              <select id="offerCompanyInput">
+                <option value="DoorDash">DoorDash</option>
+                <option value="Uber Eats">Uber Eats</option>
+                <option value="Grubhub">Grubhub</option>
+                <option value="Catering">Catering</option>
+                <option value="Instacart">Instacart</option>
+                <option value="Spark">Spark</option>
+                <option value="Roadie">Roadie</option>
+                <option value="Other">Other</option>
+              </select>
+            </label>
+          </div>
+          <label>Zone optional
+            <input id="offerZoneInput" type="text" list="zoneOptions" autocomplete="off" placeholder="South City" />
+          </label>
+          <label>Note optional
+            <input id="offerNoteInput" type="text" autocomplete="off" placeholder="Apartment, long wait, stacked order…" />
+          </label>
+          <div id="decisionResult" class="decision-card neutral">
+            <p class="label">Decision</p>
+            <h2>Enter an offer</h2>
+            <p>Add pay, miles, and estimated minutes to get an accept/decline recommendation.</p>
+          </div>
+          <div class="inline-actions offer-actions">
+            <button id="calculateOfferBtn" class="secondary-btn full" type="button">Calculate Only</button>
+            <button id="clearOfferBtn" class="secondary-btn full" type="button">Clear</button>
+            <button id="copyDecisionBtn" class="secondary-btn full" type="button">Copy Decision</button>
+            <button id="saveOfferAsDeliveryBtn" class="primary-btn full" type="button">Save as Completed</button>
+          </div>
+        </section>
+      </section>
+
+      <section id="tab-history" class="tab-screen">
+        <section id="exportCenter" class="panel export-center">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Bookkeeping</p>
+              <h2>Tax & Export Center</h2>
+            </div>
+          </div>
+          <p class="muted">Export clean local records for bookkeeping, tax prep, and backup. Tax and profit numbers are estimates based on your Settings and are not tax advice.</p>
+          <details class="luxury-disclosure export-disclosure">
+            <summary>Export and backup tools</summary>
+            <div class="luxury-disclosure-body">
+          <div class="export-card-grid">
+            <article class="export-card">
+              <h3>Standard CSV</h3>
+              <p>Date, company, earnings, miles, minutes, zone, note, and source for every saved delivery.</p>
+              <button id="exportBtn" class="secondary-btn full" type="button">Export Standard CSV</button>
+            </article>
+            <article class="export-card">
+              <h3>Tax CSV</h3>
+              <p>Gross earnings, business miles, mileage deduction rate, estimated deduction, fuel, maintenance, and estimated profit.</p>
+              <button id="exportTaxBtn" class="secondary-btn full" type="button">Export Tax CSV</button>
+            </article>
+            <article class="export-card">
+              <h3>Daily Summary CSV</h3>
+              <p>Daily totals for earnings, estimated profit, miles, deliveries, average $/mile, gross/hour, and profit/hour.</p>
+              <button id="exportDailyBtn" class="secondary-btn full" type="button">Export Daily Summary</button>
+            </article>
+            <article class="export-card">
+              <h3>JSON Backup</h3>
+              <p>Full local backup with deliveries, settings, shift data, app data version, and export timestamp.</p>
+              <button id="backupBtn" class="secondary-btn full" type="button">Export Backup JSON</button>
+            </article>
+          </div>
+          <div class="export-safety-actions">
+            <label class="secondary-btn compact import-btn" for="importInput">Import Backup</label>
+            <input id="importInput" class="hidden" type="file" accept="application/json,.json" />
+            <button id="restoreRollbackBtn" class="secondary-btn compact" type="button">Restore Import Rollback</button>
+          </div>
+          <article id="importPreview" class="import-preview hidden" aria-live="polite">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Backup preview</p>
+                <h3>Review before importing</h3>
+              </div>
+              <span id="importPreviewStatus" class="status-chip">Pending</span>
+            </div>
+            <div id="importPreviewMeta" class="import-preview-grid">No backup selected.</div>
+            <label>Import mode
+              <select id="importModeInput">
+                <option value="merge">Merge deliveries with current data</option>
+                <option value="replace">Replace current local data</option>
+              </select>
+            </label>
+            <p id="importModeHelp" class="muted small">Merge keeps your current settings and shift state, adds new deliveries, and skips duplicate delivery IDs.</p>
+            <div class="inline-actions">
+              <button id="confirmImportBtn" class="primary-btn full" type="button">Confirm Import</button>
+              <button id="cancelImportBtn" class="secondary-btn full" type="button">Cancel Import</button>
+            </div>
+          </article>
+          <p class="muted small">Exports work offline from your saved local data. Keep a JSON backup before clearing browser data or switching devices. Imports are validated and previewed before they change local data.</p>
+            </div>
+          </details>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <h2>History</h2>
+          </div>
+          <div id="historyList" class="history-list empty">No deliveries saved yet. Use Quick Add to start tracking pay, miles, profit, and tax records.</div>
+        </section>
+      </section>
+
+      <section id="tab-analytics" class="tab-screen">
+        <section class="panel analytics-hero">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Profit intelligence</p>
+              <h2>Analytics</h2>
+            </div>
+          </div>
+          <p class="muted">Compare real saved deliveries by platform, zone, and hour. Rankings use estimated profit, $/mile, and hourly pace from your local data.</p>
+          <div class="analytics-kpi-grid" aria-label="Today analytics highlights">
+            <article class="analytics-kpi"><span>Best company today</span><strong id="analyticsBestCompany">—</strong></article>
+            <article class="analytics-kpi"><span>Worst company today</span><strong id="analyticsWorstCompany">—</strong></article>
+            <article class="analytics-kpi"><span>Best zone today</span><strong id="analyticsBestZone">—</strong></article>
+            <article class="analytics-kpi"><span>Worst zone today</span><strong id="analyticsWorstZone">—</strong></article>
+            <article class="analytics-kpi"><span>Best hour today</span><strong id="analyticsBestHourToday">—</strong></article>
+            <article class="analytics-kpi"><span>Best saved hour</span><strong id="analyticsWeeklyBestHour">—</strong></article>
+          </div>
+        </section>
+
+        <section class="panel mini-report">
+          <h2>Platform performance</h2>
+          <div id="analyticsCompanyBreakdown" class="analytics-list empty">No platform data yet. Save deliveries to compare apps.</div>
+        </section>
+
+        <section class="panel mini-report">
+          <h2>Zone performance</h2>
+          <div id="analyticsZoneBreakdown" class="analytics-list empty">No zone data yet. Add zones to compare where you earn best.</div>
+        </section>
+
+        <section id="zoneHeatmapCard" class="panel mini-report zone-heatmap-card">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Manual zone heatmap</p>
+              <h2>Zone map without GPS</h2>
+            </div>
+            <span id="zoneHeatmapStatus" class="status-chip">Needs zones</span>
+          </div>
+          <p id="zoneHeatmapExplanation" class="muted">Create custom zones in Settings or type zones on deliveries. DriveLedger ranks those areas without requesting GPS permissions.</p>
+          <div id="zoneHeatmapGrid" class="zone-heatmap-grid empty">No zone performance yet. Add zones to deliveries to compare areas.</div>
+        </section>
+
+        <section id="bestTimeCard" class="panel mini-report best-time-card">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Best time to drive</p>
+              <h2>Hourly insights</h2>
+            </div>
+            <span id="bestTimeStatus" class="status-chip">Local data only</span>
+          </div>
+          <p id="bestTimeExplanation" class="muted">DriveLedger groups your saved deliveries by hour of day to show when your gross and estimated profit pace are strongest.</p>
+          <div class="best-time-grid" aria-label="Best time to drive insight cards">
+            <article class="best-time-panel">
+              <h3>Best hours today</h3>
+              <div id="bestHoursToday" class="analytics-list empty">No hourly data for today yet. Save deliveries to see today’s strongest windows.</div>
+            </article>
+            <article class="best-time-panel">
+              <h3>Best historical hours</h3>
+              <div id="bestHistoricalHours" class="analytics-list empty">Save at least two past driving days to unlock historical best-hour insights.</div>
+            </article>
+            <article class="best-time-panel">
+              <h3>Weak hours</h3>
+              <div id="weakHoursList" class="analytics-list empty">Weak-hour insights appear after enough past hourly history is saved.</div>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel mini-report">
+          <h2>Earnings by hour</h2>
+          <p class="muted small">All saved hourly buckets ranked by estimated profit pace. Bars are based on real saved deliveries only.</p>
+          <div id="analyticsHourlyBreakdown" class="analytics-list empty">No hourly data yet. Save deliveries with timestamps to reveal your best hours.</div>
+        </section>
+      </section>
+
+      <section id="tab-settings" class="tab-screen">
+        <section class="panel form-panel">
+          <h2>Settings</h2>
+          <label>Daily earnings goal
+            <input id="goalInput" type="text" inputmode="decimal" autocomplete="off" placeholder="200" />
+          </label>
+
+          <section id="smartGoalCard" class="smart-goal-card status-neutral" aria-label="Smart goal recommendation">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Smart goal</p>
+                <h2>Suggested daily goal</h2>
+              </div>
+              <span id="smartGoalStatus" class="status-chip">Needs history</span>
+            </div>
+            <div id="smartGoalSuggestion" class="smart-goal-suggestion">Save a few past driving days to unlock a local goal recommendation.</div>
+            <div id="smartGoalStats" class="smart-goal-stats empty">No historical driving days yet.</div>
+            <p id="smartGoalExplanation" class="muted small">DriveLedger calculates average earnings, average profit, and average hours from your saved local deliveries only. No fake data or outside service is used.</p>
+            <div class="inline-actions">
+              <button id="applySmartGoalBtn" class="primary-btn" type="button" disabled>Apply Suggested Goal</button>
+              <button id="ignoreSmartGoalBtn" class="secondary-btn" type="button">Keep Current Goal</button>
+            </div>
+          </section>
+
+          <label>Default company
+            <select id="defaultCompanyInput">
+              <option value="DoorDash">DoorDash</option>
+              <option value="Uber Eats">Uber Eats</option>
+              <option value="Grubhub">Grubhub</option>
+              <option value="Catering">Catering</option>
+              <option value="Instacart">Instacart</option>
+              <option value="Spark">Spark</option>
+              <option value="Roadie">Roadie</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+          <div class="two-col">
+            <label>Gas price / gallon
+              <input id="gasPriceInput" type="text" inputmode="decimal" autocomplete="off" placeholder="3.50" />
+            </label>
+            <label>Vehicle MPG
+              <input id="mpgInput" type="text" inputmode="decimal" autocomplete="off" placeholder="25" />
+            </label>
+          </div>
+          <div class="two-col">
+            <label>Maintenance $/mile
+              <input id="maintenanceInput" type="text" inputmode="decimal" autocomplete="off" placeholder="0.12" />
+            </label>
+            <label>Tax mileage rate
+              <input id="taxRateInput" type="text" inputmode="decimal" autocomplete="off" placeholder="0.67" />
+            </label>
+          </div>
+          <div class="two-col">
+            <label>Minimum $/mile
+              <input id="minPerMileInput" type="text" inputmode="decimal" autocomplete="off" placeholder="1.50" />
+            </label>
+            <label>Minimum $/hour
+              <input id="minPerHourInput" type="text" inputmode="decimal" autocomplete="off" placeholder="20" />
+            </label>
+          </div>
+          <div class="two-col">
+            <label>Minimum payout
+              <input id="minPayoutInput" type="text" inputmode="decimal" autocomplete="off" placeholder="7" />
+            </label>
+            <label>Maximum miles
+              <input id="maxMilesInput" type="text" inputmode="decimal" autocomplete="off" placeholder="12" />
+            </label>
+          </div>
+          <label>Default zone
+            <input id="defaultZoneInput" type="text" list="zoneOptions" autocomplete="off" placeholder="South City" />
+          </label>
+          <datalist id="zoneOptions"></datalist>
+
+          <details class="settings-disclosure">
+            <summary>Zones and heatmap controls</summary>
+          <section class="zone-manager-card" aria-label="Custom zones">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Manual zones</p>
+                <h2>Custom zone list</h2>
+              </div>
+            </div>
+            <p class="muted small">Define the areas you drive most. These power the GPS-free heatmap and autocomplete, while old delivery zone names stay valid.</p>
+            <div class="inline-actions zone-add-row">
+              <label class="grow">New zone
+                <input id="customZoneInput" type="text" autocomplete="off" placeholder="Kirkwood, South City, Clayton…" />
+              </label>
+              <button id="addCustomZoneBtn" class="secondary-btn" type="button">Add Zone</button>
+            </div>
+            <div id="customZoneList" class="zone-list empty">No custom zones yet. Add the areas you actually drive.</div>
+          </section>
+          </details>
+
+
+          <details class="settings-disclosure">
+            <summary>Privacy and data controls</summary>
+          <section id="privacyCenter" class="privacy-center-card" aria-label="Privacy and data control center">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Privacy</p>
+                <h2>Data Control Center</h2>
+              </div>
+              <span id="privacyStorageStatus" class="status-chip">Local only</span>
+            </div>
+            <p id="privacyDataLocation" class="muted">DriveLedger stores deliveries, settings, shifts, imports, and rollback snapshots locally in this browser using namespaced <code>localStorage</code> keys. There is no account, backend, cloud sync, GPS upload, or server database in this static PWA.</p>
+            <div id="storageUsageEstimate" class="storage-usage-card">Storage estimate unavailable until the app renders.</div>
+            <div id="storageUsageDetails" class="privacy-key-list empty">No local DriveLedger data has been measured yet.</div>
+            <div class="privacy-action-grid">
+              <button id="privacyExportAllBtn" class="secondary-btn full" type="button">Export All Data</button>
+              <label class="secondary-btn full import-btn" for="importInput">Import Backup</label>
+              <button id="privacyRestoreSafetyBtn" class="secondary-btn full" type="button">Emergency Restore Last Backup</button>
+              <button id="resetSettingsBtn" class="danger-btn full" type="button">Reset Settings Only</button>
+              <button id="resetDeliveriesBtn" class="danger-btn full" type="button">Reset Deliveries Only</button>
+              <button id="clearAllDataBtn" class="danger-btn full" type="button">Clear All Local Data</button>
+            </div>
+            <p class="muted small">Dangerous actions require two confirmations. Export a JSON backup first. Restore uses the last backup/export/import rollback snapshot available on this browser.</p>
+          </section>
+          </details>
+
+          <button id="saveSettingsBtn" class="primary-btn full" type="button">Save Settings</button>
+          <button id="clearTodayBtn" class="danger-btn full" type="button">Delete Today's Deliveries</button>
+          <p class="muted small">Data saves locally on this device. No account or server required. Screenshot OCR uses your browser and requires internet for the OCR library on the first load.</p>
+        </section>
+      </section>
+    </main>
+
+
+
+    <section id="quickAddSheet" class="quick-add-sheet hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="quickAddTitle" aria-describedby="quickAddHint">
+      <div id="quickAddBackdrop" class="sheet-backdrop" data-quick-add-cancel></div>
+      <form id="quickAddForm" class="sheet-panel" novalidate>
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">One-hand entry</p>
+            <h2 id="quickAddTitle">Quick Add Delivery</h2>
+            <p id="quickAddHint" class="muted small">Save a completed order without leaving Today.</p>
+          </div>
+          <button id="quickCancelBtn" class="ghost-btn compact" data-quick-add-cancel type="button" aria-label="Close quick add">Cancel</button>
+        </div>
+
+        <section class="quick-scan-card" aria-label="Quick screenshot scanner">
+          <label class="file-drop quick-file-drop" for="quickScreenshotInput">
+            <input id="quickScreenshotInput" type="file" accept="image/*" />
+            <span>📸 Scan order screenshot</span>
+            <small>Fastest path: upload the screenshot, review the fields, then save.</small>
+          </label>
+          <div id="quickScanStatus" class="scan-status hidden" aria-live="polite">Ready to scan a screenshot.</div>
+          <img id="quickPreviewImage" class="preview quick-preview hidden" alt="Quick screenshot preview" />
+          <details id="quickOcrDetails" class="ocr-details hidden">
+            <summary>View scanned text</summary>
+            <pre id="quickOcrText"></pre>
+          </details>
+          <button id="quickClearScanBtn" class="ghost-btn compact hidden" type="button" aria-label="Clear quick screenshot scan">Clear scan</button>
+        </section>
+
+        <details id="quickManualDetails" class="quick-manual-details" open>
+          <summary>Review detected details or type manually</summary>
+          <label>Company
+            <select id="quickCompanyInput" required>
+              <option value="DoorDash">DoorDash</option>
+              <option value="Uber Eats">Uber Eats</option>
+              <option value="Grubhub">Grubhub</option>
+              <option value="Catering">Catering</option>
+              <option value="Instacart">Instacart</option>
+              <option value="Spark">Spark</option>
+              <option value="Roadie">Roadie</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+
+          <label>Restaurant / store
+            <input id="quickMerchantInput" type="text" autocomplete="off" enterkeyhint="next" placeholder="Detected from screenshot" />
+          </label>
+
+          <div class="quick-field-grid">
+            <label>Earnings
+              <input id="quickEarningsInput" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next" placeholder="18.75" required />
+            </label>
+            <label>Miles
+              <input id="quickMilesInput" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next" placeholder="5.4" required />
+            </label>
+          </div>
+
+          <div class="quick-field-grid">
+            <label>Minutes
+              <input id="quickMinutesInput" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="next" placeholder="28" />
+            </label>
+            <label>Zone
+              <input id="quickZoneInput" type="text" list="zoneOptions" autocomplete="off" enterkeyhint="next" placeholder="South City" />
+            </label>
+          </div>
+
+          <details id="quickNotesDetails" class="quick-notes">
+            <summary>Add note</summary>
+            <label>Notes optional
+              <input id="quickNotesInput" type="text" autocomplete="off" placeholder="Apartment wait, catering batch, correction…" />
+            </label>
+          </details>
+        </details>
+
+        <div id="quickDeliveryPreview" class="delivery-preview">Enter earnings and miles to preview profit.</div>
+        <div class="inline-actions sticky-sheet-actions">
+          <button id="quickSaveBtn" class="primary-btn full" type="submit" aria-label="Save quick delivery">Save</button>
+          <button id="quickSaveAnotherBtn" class="secondary-btn full" type="button" aria-label="Save quick delivery and keep the sheet open">Save + Add Another</button>
+        </div>
+      </form>
+    </section>
+
+
+    <nav id="mobileActionDock" class="mobile-action-dock" aria-label="Primary driver actions">
+      <button id="dockQuickAddBtn" class="dock-action primary" data-quick-add-open type="button" aria-label="Quick add from a delivery screenshot">
+        <strong>📸</strong><span>Scan Add</span>
+      </button>
+      <button id="dockScanBtn" class="dock-action secondary-tool" data-open-add="scan" type="button" aria-label="Scan a delivery screenshot">
+        <strong>⌁</strong><span>Scan</span>
+      </button>
+      <button id="dockDecideBtn" class="dock-action secondary-tool" data-tab-jump="decide" type="button" aria-label="Open accept calculator">
+        <strong>✓</strong><span>Decide</span>
+      </button>
+    </nav>
+
+    <nav class="bottom-tabs" aria-label="App navigation">
+      <button class="tab-btn active" data-tab="today" type="button" aria-label="Open Today dashboard">Today</button>
+      <button class="tab-btn" data-tab="add" type="button" aria-label="Open Add delivery screen">Add</button>
+      <button class="tab-btn" data-tab="decide" type="button" aria-label="Open Accept Calculator">Decide</button>
+      <button class="tab-btn" data-tab="history" type="button" aria-label="Open History and exports">History</button>
+      <button class="tab-btn" data-tab="analytics" type="button" aria-label="Open Analytics">Analytics</button>
+      <button class="tab-btn" data-tab="settings" type="button" aria-label="Open Settings">Settings</button>
+    </nav>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

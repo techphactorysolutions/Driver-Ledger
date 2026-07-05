@@ -1,0 +1,13 @@
+{
+  "name": "driveledger-pwa",
+  "version": "3.6.2",
+  "private": true,
+  "description": "DriveLedger screenshot-first quick add refinement with OCR restaurant detection, local-first gig-driver profit tracking, analytics, backups, and Netlify-ready PWA packaging.",
+  "scripts": {
+    "test": "python -m unittest discover -s tests",
+    "syntax": "node --check app.js && node --check service-worker.js",
+    "smoke": "node tools/smoke-startup.js"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

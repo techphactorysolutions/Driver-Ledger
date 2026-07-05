@@ -4,7 +4,7 @@ DriveLedger is a local-first Progressive Web App for gig delivery drivers. It tr
 
 ## Current release
 
-Version: `3.6.2` Screenshot-First Quick Add refinement, built on the 3.6.1 OCR Merchant Detection Repair.
+Version: `3.6.3` GitHub Pages release repair and Tech Phactory Solutions branding, built on the 3.6.2 Screenshot-First Quick Add refinement.
 
 This release preserves the static PWA architecture. There is no backend, database server, framework, build step, or account system. The app runs from plain static files and stores user data locally in the browser.
 
@@ -43,6 +43,8 @@ This release preserves the static PWA architecture. There is no backend, databas
 - Custom zone manager in Settings for adding, renaming, and deleting manual zones without corrupting older saved delivery zone labels.
 - Privacy and Data Control Center in Settings explaining local-only storage, showing localStorage usage, exporting/importing data, resetting settings or deliveries, clearing all active local data with double confirmation, and restoring the latest safety backup/import rollback.
 - Netlify release package with `_redirects`, `DEPLOYMENT.md`, root-file verification, static-hosting checklist, install instructions, and troubleshooting guidance.
+- Visible app credit: **Made by Tech Phactory Solutions** in the app header/footer and fallback page.
+- GitHub Pages release support with `.nojekyll`, `404.html`, root-file checks, and GitHub deployment troubleshooting guidance.
 - Simplified luxury Today layout: advanced insight cards, recap details, breakdowns, export tools, zones, and privacy controls are tucked behind clean disclosure panels instead of crowding the first view.
 - OCR restaurant/store detection: screenshot review now uses expanded local merchant parsing for chain and local restaurants, pickup labels, standalone pickup blocks, go-to/head-to text, and merchant names mixed with addresses. The detected name is editable, saved with OCR deliveries, displayed in History, and included in standard CSV exports.
 - Accessibility improvements including a skip link, stronger focus states, dialog semantics, aria labels, and reduced-motion support.
@@ -50,6 +52,20 @@ This release preserves the static PWA architecture. There is no backend, databas
 
 
 
+
+
+## 3.6.3 GitHub Pages + branding repair notes
+
+This release adds visible app branding and improves GitHub Pages deploy readiness after a failed Pages deployment. DriveLedger now includes a small premium credit line that says **Made by Tech Phactory Solutions**, plus GitHub Pages support files: `.nojekyll` to disable Jekyll processing and `404.html` as a static fallback. Runtime files still use relative paths so the app can run from a project URL such as `https://techphactorysolutions.github.io/Driver-Ledger/`.
+
+GitHub Pages quick deploy:
+
+1. Unzip the release package.
+2. Upload the **contents** of the unzipped folder to the repository root, not the ZIP file itself and not a nested parent folder.
+3. Confirm `index.html`, `styles.css`, `app.js`, `manifest.json`, `service-worker.js`, `.nojekyll`, and `icons/` are visible at the repo root.
+4. In GitHub, open **Settings → Pages**.
+5. Set Source to **Deploy from a branch**, branch `main`, folder `/root`, then save.
+6. Open **Actions** or the red deployment entry if it fails and read the build log. Common causes are `index.html` being inside a subfolder, uploading only the ZIP, or Pages pointing to the wrong branch/folder.
 
 ## 3.6.2 Screenshot-First Quick Add notes
 

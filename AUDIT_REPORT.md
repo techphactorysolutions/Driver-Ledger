@@ -1,5 +1,34 @@
 # DriveLedger Audit Report
 
+## 3.6.3 GitHub Pages + Tech Phactory Branding Audit
+
+Scope: targeted repair after GitHub Pages showed a failed deployment and the user requested visible maker branding. The app remains a static local-first PWA with no backend, framework, build step, database server, or account system.
+
+Findings and fixes:
+
+- Finding: GitHub Pages deployments can fail or serve incorrectly when a static PWA package is uploaded as a ZIP, uploaded one folder too deep, processed by Jekyll, or pointed at the wrong branch/root.
+  - Fix: Added `.nojekyll`, added a lightweight `404.html` fallback, and expanded `DEPLOYMENT.md` with GitHub Pages root-upload and failed-deployment troubleshooting.
+- Finding: The app did not visibly credit the maker.
+  - Fix: Added small premium UI branding: **Made by Tech Phactory Solutions** in the app header/footer and 404 fallback.
+- Finding: GitHub Pages project URLs require relative paths.
+  - Fix: Re-verified manifest, icons, stylesheet, app script, and service worker cache paths remain relative.
+
+Tests run:
+
+```bash
+npm run syntax
+npm run smoke
+python -m unittest discover -s tests -v
+```
+
+Result: all tests passed.
+
+Remaining risks:
+
+- The screenshot does not include the GitHub Pages build log, so the package includes common static-site fixes and deployment instructions, but the exact GitHub failure reason should still be checked in the red failed deployment log if it happens again.
+- Real GitHub Pages deployment testing is still recommended after uploading the unzipped package contents to the repository root.
+- Data remains localStorage-based; users should export JSON backups regularly.
+
 ## 3.6.2 Screenshot-First Quick Add Audit
 
 Scope: targeted repair after user testing showed the main Quick Add flow still treated screenshots as secondary. The app was audited, changed, and tested so Quick Add now supports direct screenshot OCR without leaving Today.

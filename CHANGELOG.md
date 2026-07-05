@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.6.3
+
+- Added visible app credit: **Made by Tech Phactory Solutions**.
+- Added `.nojekyll` for GitHub Pages static deploy safety.
+- Added `404.html` fallback page for GitHub Pages/static hosting.
+- Updated deployment docs with GitHub Pages upload/root-folder instructions and failed-deployment troubleshooting.
+- Verified runtime paths remain relative for GitHub Pages project URLs.
+- Bumped package version to `3.6.3` and service-worker cache to `driveledger-v28-github-pages-branding`.
+
 ## 3.6.2
 
 - Made Quick Add screenshot-first instead of manual-first.

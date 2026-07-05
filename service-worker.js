@@ -1,5 +1,5 @@
-const CACHE_VERSION = "v27-screenshot-first-quick-add";
-const CACHE_NAME = "driveledger-v27-screenshot-first-quick-add";
+const CACHE_VERSION = "v28-github-pages-branding";
+const CACHE_NAME = "driveledger-v28-github-pages-branding";
 const OFFLINE_FALLBACK = "./index.html";
 const CORE_ASSETS = [
   "./",

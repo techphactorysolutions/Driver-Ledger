@@ -2,6 +2,32 @@
 
 DriveLedger is a static, local-first PWA. It does not need a backend, database server, build step, or environment variables. You can deploy it with Netlify Drop by dragging the unzipped project folder into the Netlify Drop upload area.
 
+## GitHub Pages deployment
+
+DriveLedger can run from GitHub Pages as a plain static site. This package includes `.nojekyll` so GitHub Pages does not process the app with Jekyll, and `404.html` as a simple fallback page.
+
+1. Download the latest DriveLedger release ZIP.
+2. Unzip it.
+3. Upload the **contents** of the unzipped folder to the root of your GitHub repository. Do not upload only the ZIP file. Do not leave the app inside a nested folder.
+4. Confirm these files are visible at the repository root:
+   - `index.html`
+   - `styles.css`
+   - `app.js`
+   - `manifest.json`
+   - `service-worker.js`
+   - `.nojekyll`
+   - `404.html`
+   - `icons/icon-192.png`
+   - `icons/icon-512.png`
+5. Open **Settings → Pages**.
+6. Choose **Deploy from a branch**.
+7. Select branch `main` and folder `/root`.
+8. Save and wait for the Pages deployment.
+9. Open the published URL. For a project repo it will look like `https://YOUR-USERNAME.github.io/REPO-NAME/`.
+10. Add a test delivery, reload, and confirm localStorage persistence.
+
+If GitHub says the deployment failed, click the red failed deployment or open the Actions/Pages build log. The most common fixes are: move `index.html` to the repo root, change Pages to `main /root`, commit `.nojekyll`, or unzip the package before uploading.
+
 ## Netlify Drop deployment
 
 1. Download the latest DriveLedger release ZIP.
@@ -74,6 +100,17 @@ DriveLedger stores data locally in browser `localStorage` under `driveledger.*` 
 6. Import the backup in a separate test browser/profile to confirm restore works.
 
 ## Troubleshooting
+
+### GitHub Pages deployment failed
+
+Open the failed deployment log from the red deployment entry. Check these first:
+
+- `index.html` must be at the repository root.
+- GitHub Pages should point to branch `main`, folder `/root`.
+- The release ZIP must be unzipped before uploading.
+- `.nojekyll` should be present at the root to disable Jekyll processing.
+- Runtime files should not be inside a nested folder such as `DriveLedger_v3_6_3/index.html`.
+
 
 ### The app shows an old version
 

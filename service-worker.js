@@ -1,5 +1,5 @@
-const CACHE_VERSION = "v29-subtle-tech-phactory-credit";
-const CACHE_NAME = "driveledger-v29-subtle-tech-phactory-credit";
+const CACHE_VERSION = "v31-modern-ui-audit-fix";
+const CACHE_NAME = "driveledger-v31-modern-ui-audit-fix";
 const OFFLINE_FALLBACK = "./index.html";
 const CORE_ASSETS = [
   "./",

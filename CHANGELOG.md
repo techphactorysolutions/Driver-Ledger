@@ -1,3 +1,13 @@
+## 3.7.1 — Audit fix for modern UI refresh
+- Fixed a CSS regression where the visual refresh could override fixed-position overlays/navigation.
+- Restored fixed positioning for toast, Quick Add sheet, bottom tabs, mobile action dock, and skip link.
+- Added regression tests to prevent future UI refreshes from demoting fixed overlays.
+
+## 3.7.0 — Modern UI refresh
+- Refined the visual design to feel more modern, premium, and interesting without adding clutter.
+- Improved glassmorphism, gradients, card hierarchy, input styling, top bar, tab bar, and action button polish.
+- Preserved all existing functionality while focusing this pass on presentation.
+
 # Changelog
 
 ## 3.6.4

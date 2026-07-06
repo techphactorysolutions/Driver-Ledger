@@ -1,3 +1,9 @@
+## 3.7.1 audit fix
+This build repairs a fixed-layer CSS regression from the modern UI refresh. Quick Add, toast notifications, mobile action dock, bottom tabs, and skip link now retain fixed positioning.
+
+## Visual refresh
+DriveLedger 3.7.0 includes a presentation refresh aimed at a more modern, premium iPhone-style look while keeping the simplified, screenshot-first workflow intact.
+
 # DriveLedger
 
 DriveLedger is a local-first Progressive Web App for gig delivery drivers. It tracks daily earnings, mileage, estimated profit, tax mileage deduction, platform performance, zone performance, shift pace, screenshot OCR-assisted entry, and accept/decline order decisions.

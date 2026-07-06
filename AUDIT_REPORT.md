@@ -1,3 +1,9 @@
+## 3.7.1 audit and bug fix
+Audit found one real UI regression introduced by the 3.7.0 visual refresh: a broad CSS layering rule could make fixed UI layers behave like normal relative elements. Fixed components include toast, Quick Add sheet, bottom tabs, mobile action dock, and skip link. Regression tests were added and all test suites pass.
+
+## UI refresh addendum
+This pass focused on visual refinement only. Core logic, storage, OCR, analytics, and exports were preserved. Styles were modernized to give the app a more premium and interesting feel while keeping the simplified surface layout.
+
 # DriveLedger Audit Report
 
 ## 3.6.4 Subtle Tech Phactory Design Credit Audit

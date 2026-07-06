@@ -1,15 +1,15 @@
 # DriveLedger Audit Report
 
-## 3.6.3 GitHub Pages + Tech Phactory Branding Audit
+## 3.6.4 Subtle Tech Phactory Design Credit Audit
 
-Scope: targeted repair after GitHub Pages showed a failed deployment and the user requested visible maker branding. The app remains a static local-first PWA with no backend, framework, build step, database server, or account system.
+Scope: targeted repair after the user reported the in-app credit was not visible enough and requested subtle wording: “Designed by Tech Phactory Solutions”. The app remains a static local-first PWA with no backend, framework, build step, database server, or account system.
 
 Findings and fixes:
 
 - Finding: GitHub Pages deployments can fail or serve incorrectly when a static PWA package is uploaded as a ZIP, uploaded one folder too deep, processed by Jekyll, or pointed at the wrong branch/root.
   - Fix: Added `.nojekyll`, added a lightweight `404.html` fallback, and expanded `DEPLOYMENT.md` with GitHub Pages root-upload and failed-deployment troubleshooting.
-- Finding: The app did not visibly credit the maker.
-  - Fix: Added small premium UI branding: **Made by Tech Phactory Solutions** in the app header/footer and 404 fallback.
+- Finding: The prior credit could be missed in the app and used the wrong wording.
+  - Fix: Changed the visible in-app credit to **Designed by Tech Phactory Solutions** and tuned the styling to be subtle but readable in the header/footer and 404 fallback.
 - Finding: GitHub Pages project URLs require relative paths.
   - Fix: Re-verified manifest, icons, stylesheet, app script, and service worker cache paths remain relative.
 
@@ -1524,3 +1524,10 @@ Use this checklist on iPhone/iPad Safari or a hosted Netlify build:
 16. Confirm manual Add tab still works.
 17. Confirm Accept Calculator still works.
 18. Reload and confirm data persists.
+
+
+## 3.6.4 Subtle Design Credit Audit
+
+- Updated visible in-app credit to: **Designed by Tech Phactory Solutions**.
+- Kept the credit intentionally subtle in the header and footer so it does not clutter the driver workflow.
+- Verified package version `3.6.4`, service-worker cache `driveledger-v29-subtle-tech-phactory-credit`, and static tests.

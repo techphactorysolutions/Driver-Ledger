@@ -4,7 +4,7 @@ DriveLedger is a local-first Progressive Web App for gig delivery drivers. It tr
 
 ## Current release
 
-Version: `3.6.3` GitHub Pages release repair and Tech Phactory Solutions branding, built on the 3.6.2 Screenshot-First Quick Add refinement.
+Version: `3.6.4` subtle design-credit repair, built on the 3.6.3 GitHub Pages package.
 
 This release preserves the static PWA architecture. There is no backend, database server, framework, build step, or account system. The app runs from plain static files and stores user data locally in the browser.
 
@@ -43,7 +43,7 @@ This release preserves the static PWA architecture. There is no backend, databas
 - Custom zone manager in Settings for adding, renaming, and deleting manual zones without corrupting older saved delivery zone labels.
 - Privacy and Data Control Center in Settings explaining local-only storage, showing localStorage usage, exporting/importing data, resetting settings or deliveries, clearing all active local data with double confirmation, and restoring the latest safety backup/import rollback.
 - Netlify release package with `_redirects`, `DEPLOYMENT.md`, root-file verification, static-hosting checklist, install instructions, and troubleshooting guidance.
-- Visible app credit: **Made by Tech Phactory Solutions** in the app header/footer and fallback page.
+- Subtle visible app credit: **Designed by Tech Phactory Solutions** in the app header/footer and fallback page.
 - GitHub Pages release support with `.nojekyll`, `404.html`, root-file checks, and GitHub deployment troubleshooting guidance.
 - Simplified luxury Today layout: advanced insight cards, recap details, breakdowns, export tools, zones, and privacy controls are tucked behind clean disclosure panels instead of crowding the first view.
 - OCR restaurant/store detection: screenshot review now uses expanded local merchant parsing for chain and local restaurants, pickup labels, standalone pickup blocks, go-to/head-to text, and merchant names mixed with addresses. The detected name is editable, saved with OCR deliveries, displayed in History, and included in standard CSV exports.
@@ -54,9 +54,9 @@ This release preserves the static PWA architecture. There is no backend, databas
 
 
 
-## 3.6.3 GitHub Pages + branding repair notes
+## 3.6.4 Subtle design credit repair notes
 
-This release adds visible app branding and improves GitHub Pages deploy readiness after a failed Pages deployment. DriveLedger now includes a small premium credit line that says **Made by Tech Phactory Solutions**, plus GitHub Pages support files: `.nojekyll` to disable Jekyll processing and `404.html` as a static fallback. Runtime files still use relative paths so the app can run from a project URL such as `https://techphactorysolutions.github.io/Driver-Ledger/`.
+This release adds visible app branding and improves GitHub Pages deploy readiness after a failed Pages deployment. DriveLedger now includes a small premium credit line that says **Designed by Tech Phactory Solutions**, plus GitHub Pages support files: `.nojekyll` to disable Jekyll processing and `404.html` as a static fallback. Runtime files still use relative paths so the app can run from a project URL such as `https://techphactorysolutions.github.io/Driver-Ledger/`.
 
 GitHub Pages quick deploy:
 
@@ -637,3 +637,10 @@ npm run smoke
 - Screenshot OCR uses Tesseract.js from jsDelivr on first load. If the CDN is unavailable or OCR fails, the app shows a failed scan state and falls back to manual entry.
 - Tax and expense numbers are estimates. The mileage rate, gas price, MPG, and maintenance cost are editable in Settings.
 - The smoke test is a mocked browser test, not a substitute for manual iPhone/iPad Safari testing.
+
+
+## 3.6.4 subtle design credit update
+
+- Updated visible in-app credit to: **Designed by Tech Phactory Solutions**.
+- Kept the credit intentionally subtle in the header and footer so it does not clutter the driver workflow.
+- Verified package version `3.6.4`, service-worker cache `driveledger-v29-subtle-tech-phactory-credit`, and static tests.

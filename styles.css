@@ -37,20 +37,24 @@ body {
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: env(safe-area-inset-top, 0px) 0 16px; }
 
 .maker-line {
-  margin: 4px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
+  margin: 5px 0 0;
+  color: rgba(225, 232, 245, .68);
+  font-size: 11.5px;
+  line-height: 1.25;
+  letter-spacing: .025em;
+  font-weight: 700;
+  text-transform: none;
 }
 
 .app-credit {
   margin: 18px 0 88px;
   text-align: center;
-  color: rgba(225, 232, 245, .58);
-  font-size: 12px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
+  color: rgba(225, 232, 245, .52);
+  font-size: 11px;
+  line-height: 1.35;
+  letter-spacing: .025em;
+  font-weight: 700;
+  text-transform: none;
 }
 
 h1, h2, p { margin: 0; }
@@ -903,5 +907,5 @@ label { font-size: 14px; }
 
 @media (max-width: 700px) {
   .app-credit { margin: 12px 0 112px; font-size: 11px; }
-  .maker-line { font-size: 10px; max-width: 210px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .maker-line { font-size: 10.5px; max-width: 235px; white-space: normal; overflow: visible; text-overflow: clip; }
 }

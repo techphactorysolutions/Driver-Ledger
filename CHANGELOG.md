@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.6.4
+
+- Changed visible branding from **Made by Tech Phactory Solutions** to the requested subtle wording: **Designed by Tech Phactory Solutions**.
+- Tuned header/footer credit styling so it is understated but easier to notice in the app.
+- Bumped package version to `3.6.4` and service-worker cache to `driveledger-v29-subtle-tech-phactory-credit`.
+
 ## 3.6.3
 
 - Added visible app credit: **Made by Tech Phactory Solutions**.

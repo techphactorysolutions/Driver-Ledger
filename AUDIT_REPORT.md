@@ -1,3 +1,9 @@
+## 3.7.3 Claude ZIP audit
+Reviewed the uploaded Claude ZIP. It did not contain functional runtime changes compared with v3.7.2, but it removed required support files: `tests/`, `tools/`, and `_redirects`. This broke smoke/unit test commands. This package restores those files, keeps the public security audit, and passes all tests.
+
+## 3.7.2 public exposure / secret audit
+No API keys, passwords, private keys, bearer tokens, GitHub tokens, OpenAI keys, AWS keys, Google API keys, Stripe keys, SendGrid keys, Slack tokens, Discord webhooks, JWT-like tokens, or `.env` files were found. Added `SECURITY_AUDIT.md` and regression coverage for future secret scans.
+
 ## 3.7.1 audit and bug fix
 Audit found one real UI regression introduced by the 3.7.0 visual refresh: a broad CSS layering rule could make fixed UI layers behave like normal relative elements. Fixed components include toast, Quick Add sheet, bottom tabs, mobile action dock, and skip link. Regression tests were added and all test suites pass.
 

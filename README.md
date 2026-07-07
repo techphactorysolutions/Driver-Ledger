@@ -1,3 +1,9 @@
+## 3.7.3 Claude package repair
+The uploaded Claude ZIP was inspected. The main runtime files matched v3.7.2, but the package was missing `tests/`, `tools/`, and `_redirects`, which broke the test/smoke workflow. This release restores those files and keeps the security-audited runtime intact.
+
+## Public security note
+DriveLedger v3.7.2 was scanned for exposed API keys, passwords, private keys, tokens, webhooks, and `.env` files. No exposed secrets were found. See `SECURITY_AUDIT.md` for details.
+
 ## 3.7.1 audit fix
 This build repairs a fixed-layer CSS regression from the modern UI refresh. Quick Add, toast notifications, mobile action dock, bottom tabs, and skip link now retain fixed positioning.
 
@@ -10,7 +16,7 @@ DriveLedger is a local-first Progressive Web App for gig delivery drivers. It tr
 
 ## Current release
 
-Version: `3.6.4` subtle design-credit repair, built on the 3.6.3 GitHub Pages package.
+Version: `3.7.3` Claude package repair, built on the v3.7.2 public security-audited release.
 
 This release preserves the static PWA architecture. There is no backend, database server, framework, build step, or account system. The app runs from plain static files and stores user data locally in the browser.
 

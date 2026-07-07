@@ -1,3 +1,15 @@
+## 3.7.3 — Claude package review repair
+- Reviewed uploaded `driveledger-fixed.zip` from Claude.
+- Confirmed core runtime files matched v3.7.2, but Claude's ZIP was missing `tests/`, `tools/`, and `_redirects`.
+- Restored missing release/test/deployment files so `npm run smoke` and Python tests work again.
+- Added `CLAUDE_REVIEW_AUDIT.md`.
+
+## 3.7.2 — Public security audit
+- Added `SECURITY_AUDIT.md`.
+- Scanned release package for exposed API keys, passwords, private keys, tokens, webhooks, and `.env` files.
+- No exposed secrets were found.
+- Added automated secret-scan regression coverage for public runtime/package files.
+
 ## 3.7.1 — Audit fix for modern UI refresh
 - Fixed a CSS regression where the visual refresh could override fixed-position overlays/navigation.
 - Restored fixed positioning for toast, Quick Add sheet, bottom tabs, mobile action dock, and skip link.

@@ -1,5 +1,5 @@
-const CACHE_VERSION = "v31-modern-ui-audit-fix";
-const CACHE_NAME = "driveledger-v31-modern-ui-audit-fix";
+const CACHE_VERSION = "v33-claude-package-repair";
+const CACHE_NAME = "driveledger-v33-claude-package-repair";
 const OFFLINE_FALLBACK = "./index.html";
 const CORE_ASSETS = [
   "./",

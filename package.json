@@ -1,8 +1,8 @@
 {
   "name": "driveledger-pwa",
-  "version": "3.7.1",
+  "version": "3.7.3",
   "private": true,
-  "description": "DriveLedger with a repaired modern UI refresh, screenshot-first quick add, subtle Tech Phactory Solutions design credit, OCR review, local-first gig-driver analytics, backups, and PWA packaging.",
+  "description": "DriveLedger repaired after Claude package review: restored missing tests/tools/_redirects, retained public security audit, modern UI, screenshot-first quick add, OCR review, local-first analytics, backups, and PWA packaging.",
   "scripts": {
     "test": "python -m unittest discover -s tests",
     "syntax": "node --check app.js && node --check service-worker.js",

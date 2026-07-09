@@ -29,6 +29,15 @@
 
 # Changelog
 
+## 3.8.0 — Persistent order decision ledger
+
+- Added a local-only `driveledger.decisions.v1` ledger for ACCEPT, BORDERLINE, and DECLINE calculator recommendations.
+- Added **Log Decision** so reviewed offers can be tracked without creating a completed delivery.
+- Saving a calculator offer as completed now records its decision automatically.
+- Added Today decision count, recent decision history/totals on Decide, and Decision CSV export.
+- Extended JSON backup/import/merge/replace/rollback/emergency restore and storage controls to preserve decision records.
+- Bumped data schema to `9`, backup schema to `10`, package version to `3.8.0`, and service-worker cache to `driveledger-v35-decision-ledger-command-center`.
+
 ## 3.6.4
 
 - Changed visible branding from **Made by Tech Phactory Solutions** to the requested subtle wording: **Designed by Tech Phactory Solutions**.

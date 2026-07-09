@@ -1,3 +1,11 @@
+## 3.8.0 persistent order decision ledger
+
+This release completes the command-center loop for order quality. The Accept Calculator can now log every valid ACCEPT, BORDERLINE, or DECLINE recommendation to a separate local-only decision ledger, while **Save as Completed** automatically records the calculator decision alongside the delivery. Today shows the decision count, Decide shows recent decision history and live totals, and the ledger can be exported as CSV.
+
+Decision records are migration-safe and stored under `driveledger.decisions.v1`. Existing delivery, settings, and shift data are preserved. JSON backups include decisions; validated merge/replace imports, rollback restore, emergency restore, and Clear All Local Data handle the new store. No backend, account system, GPS service, framework, or build system was added.
+
+Release checks for this upgrade include static DOM/button binding checks, JavaScript syntax, the mocked-browser startup smoke suite, decision migration, non-delivery decision logging, automatic calculator decision capture, decision CSV export, and PWA cache-version checks.
+
 ## Platform detection audit note
 DriveLedger v3.7.5 repairs Claude's v3.7.4 package metadata mismatch and validates expanded OCR platform detection for DoorDash, Uber Eats, Grubhub, Instacart, Spark, Roadie, and Catering. See `PLATFORM_DETECTION_AUDIT.md`.
 
@@ -19,7 +27,7 @@ DriveLedger is a local-first Progressive Web App for gig delivery drivers. It tr
 
 ## Current release
 
-Version: `3.7.3` Claude package repair, built on the v3.7.2 public security-audited release.
+Version: `3.8.0` persistent order decision ledger, built on the v3.7.5 platform-detection audited release.
 
 This release preserves the static PWA architecture. There is no backend, database server, framework, build step, or account system. The app runs from plain static files and stores user data locally in the browser.
 

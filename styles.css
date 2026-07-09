@@ -905,6 +905,30 @@ label { font-size: 14px; }
 .quick-manual-details .quick-field-grid + .quick-field-grid,
 .quick-manual-details .quick-field-grid + details { margin-top: 12px; }
 
+/* 3.8.0 persistent order decision ledger */
+.decision-log-card { display: grid; gap: 14px; }
+.decision-log-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.decision-log-metrics span { display: grid; gap: 3px; padding: 12px; border-radius: 16px; background: rgba(255,255,255,.055); border: 1px solid rgba(255,255,255,.08); text-align: center; }
+.decision-log-metrics strong { font-size: 24px; }
+.decision-log-metrics small { color: var(--muted); font-size: 12px; }
+.decision-log-list { display: grid; gap: 10px; }
+.decision-log-list.empty { color: var(--muted); line-height: 1.45; }
+.decision-log-item { display: grid; gap: 6px; padding: 13px 14px; border: 1px solid rgba(255,255,255,.09); border-left: 4px solid rgba(255,255,255,.24); border-radius: 16px; background: rgba(255,255,255,.045); }
+.decision-log-item.accept { border-left-color: var(--accent); }
+.decision-log-item.borderline { border-left-color: var(--warning); }
+.decision-log-item.decline { border-left-color: #ff7777; }
+.decision-log-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.decision-log-top strong { letter-spacing: .06em; }
+.decision-log-item.accept .decision-log-top strong { color: var(--accent); }
+.decision-log-item.borderline .decision-log-top strong { color: var(--warning); }
+.decision-log-item.decline .decision-log-top strong { color: #ffb2b2; }
+.decision-log-top span, .decision-log-meta, .decision-log-note { color: var(--muted); font-size: 13px; line-height: 1.35; }
+.decision-log-note { color: rgba(255,255,255,.78); }
+@media (max-width: 620px) {
+  .decision-log-metrics { grid-template-columns: 1fr; }
+  .decision-log-top { align-items: flex-start; flex-direction: column; gap: 3px; }
+}
+
 @media (max-width: 700px) {
   .app-credit { margin: 12px 0 112px; font-size: 11px; }
   .maker-line { font-size: 10.5px; max-width: 235px; white-space: normal; overflow: visible; text-overflow: clip; }

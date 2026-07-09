@@ -1,11 +1,12 @@
 (() => {
   const STORE_KEY = "driveledger.deliveries.v1";
+  const DECISIONS_KEY = "driveledger.decisions.v1";
   const SETTINGS_KEY = "driveledger.settings.v1";
   const SHIFT_KEY = "driveledger.shift.v1";
   const ROLLBACK_KEY = "driveledger.rollback.v1";
   const LAST_BACKUP_KEY = "driveledger.lastBackup.v1";
-  const DATA_VERSION = 8;
-  const BACKUP_VERSION = 9;
+  const DATA_VERSION = 9;
+  const BACKUP_VERSION = 10;
 
   const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
   const $ = (id) => document.getElementById(id);
@@ -42,6 +43,7 @@
   };
 
   let deliveries = normalizeDeliveries(readJSON(STORE_KEY, []));
+  let decisionLog = normalizeDecisionLog(readJSON(DECISIONS_KEY, []));
   let settings = normalizeSettings(readJSON(SETTINGS_KEY, {}));
   let shift = normalizeShift(readJSON(SHIFT_KEY, { active: false, startedAt: null, endedAt: null }));
   let lastOCRText = "";
@@ -92,6 +94,7 @@
     worstCompanyToday: $("worstCompanyToday"),
     bestZoneToday: $("bestZoneToday"),
     worstZoneToday: $("worstZoneToday"),
+    decisionsToday: $("decisionsToday"),
     performanceRecommendation: $("performanceRecommendation"),
     timeWorking: $("timeWorking"),
     driverScore: $("driverScore"),
@@ -215,9 +218,15 @@
     offerNoteInput: $("offerNoteInput"),
     decisionResult: $("decisionResult"),
     calculateOfferBtn: $("calculateOfferBtn"),
+    logDecisionBtn: $("logDecisionBtn"),
     clearOfferBtn: $("clearOfferBtn"),
     copyDecisionBtn: $("copyDecisionBtn"),
     saveOfferAsDeliveryBtn: $("saveOfferAsDeliveryBtn"),
+    decisionLogStatus: $("decisionLogStatus"),
+    decisionLogSummary: $("decisionLogSummary"),
+    decisionLogMetrics: $("decisionLogMetrics"),
+    decisionLogList: $("decisionLogList"),
+    exportDecisionsBtn: $("exportDecisionsBtn"),
     shiftBtn: $("shiftBtn"),
     exportBtn: $("exportBtn"),
     exportTaxBtn: $("exportTaxBtn"),
@@ -268,6 +277,7 @@
 
   function persistNormalizedState() {
     writeJSON(STORE_KEY, deliveries);
+    writeJSON(DECISIONS_KEY, decisionLog);
     writeJSON(SETTINGS_KEY, settings);
     writeJSON(SHIFT_KEY, shift);
   }
@@ -275,6 +285,36 @@
   function normalizeDeliveries(value) {
     if (!Array.isArray(value)) return [];
     return value.map((item) => normalizeDelivery(item)).filter(Boolean);
+  }
+
+  function normalizeDecisionLog(value) {
+    if (!Array.isArray(value)) return [];
+    return value.map((item) => normalizeDecision(item)).filter(Boolean).slice(-500);
+  }
+
+  function normalizeDecision(item) {
+    if (!item || typeof item !== "object") return null;
+    const pay = round2(num(item.pay ?? item.earnings));
+    const miles = round1(num(item.miles));
+    const minutes = round1(num(item.minutes));
+    const createdRaw = item.createdAt || item.date || item.timestamp || new Date().toISOString();
+    const createdAt = new Date(createdRaw);
+    const rawOutcome = String(item.outcome ?? item.decision ?? item.title ?? item.kind ?? "").trim().toUpperCase();
+    const outcome = ["ACCEPT", "BORDERLINE", "DECLINE"].includes(rawOutcome) ? rawOutcome : "";
+    if (!(pay > 0) || !(miles > 0) || !(minutes > 0) || pay > 10000 || miles > 1000 || minutes > 1440 || !outcome || Number.isNaN(createdAt.getTime())) return null;
+    return {
+      id: String(item.id || makeId()),
+      outcome,
+      company: allowedCompanies.has(item.company) ? item.company : "Other",
+      zone: cleanText(item.zone || "", 80),
+      pay,
+      miles,
+      minutes,
+      note: cleanText(item.note ?? item.notes ?? "", 400),
+      source: "calculator",
+      createdAt: createdAt.toISOString(),
+      version: DATA_VERSION
+    };
   }
 
   function normalizeDelivery(item) {
@@ -756,6 +796,7 @@
     renderShiftButton();
     renderDeliveryPreview();
     renderDecision();
+    renderDecisionLog();
   }
 
   function renderLive() {
@@ -778,6 +819,7 @@
     const paceStatus = paceStatusLabel(c);
     const efficiencyStatus = efficiencyStatusLabel(c);
     const taxRate = Number(settings.taxMileageRate || 0);
+    const decisionSummary = buildDecisionLogSummary(todayDecisions());
 
     els.profitToday.textContent = money.format(c.profit);
     els.profitHour.textContent = money.format(c.profitHour);
@@ -810,6 +852,7 @@
     els.worstCompanyToday.textContent = worstCompany ? worstCompany.name : (bestCompany ? "Need 2+" : "—");
     els.bestZoneToday.textContent = bestZone ? bestZone.name : "—";
     els.worstZoneToday.textContent = worstZone ? worstZone.name : (bestZone ? "Need 2+" : "—");
+    els.decisionsToday.textContent = String(decisionSummary.total);
     els.timeWorking.textContent = formatHours(c.hours);
     els.performanceRecommendation.textContent = performanceRecommendation(c, bestCompany, bestZone);
     els.heroStatusLabel.textContent = heroStatusLabel(c, score.value, goal);
@@ -1891,7 +1934,7 @@
   }
 
   function driveLedgerStorageKeys() {
-    const known = [STORE_KEY, SETTINGS_KEY, SHIFT_KEY, ROLLBACK_KEY, LAST_BACKUP_KEY];
+    const known = [STORE_KEY, DECISIONS_KEY, SETTINGS_KEY, SHIFT_KEY, ROLLBACK_KEY, LAST_BACKUP_KEY];
     const found = new Set(known);
     try {
       if (typeof localStorage.length === "number" && typeof localStorage.key === "function") {
@@ -1989,6 +2032,54 @@
     `;
     if (announce) toast(`${decision.title}: ${decision.detail}`);
     return decision;
+  }
+
+  function todayDecisions() {
+    return decisionLog.filter((item) => isToday(item.createdAt));
+  }
+
+  function buildDecisionLogSummary(rows = []) {
+    const safeRows = Array.isArray(rows) ? rows : [];
+    const counts = { ACCEPT: 0, BORDERLINE: 0, DECLINE: 0 };
+    for (const row of safeRows) {
+      if (counts[row.outcome] !== undefined) counts[row.outcome] += 1;
+    }
+    return { ...counts, total: safeRows.length };
+  }
+
+  function renderDecisionLog() {
+    if (!els.decisionLogList) return;
+    const today = todayDecisions();
+    const summary = buildDecisionLogSummary(today);
+    if (els.decisionLogStatus) els.decisionLogStatus.textContent = summary.total ? `${summary.total} today` : "No decisions yet";
+    if (els.decisionLogSummary) {
+      els.decisionLogSummary.textContent = summary.total
+        ? `Today: ${summary.ACCEPT} accepted Â· ${summary.BORDERLINE} borderline Â· ${summary.DECLINE} declined. Log decisions before saving completed orders to keep your order-quality history complete.`
+        : "Log a recommendation to remember what you accepted, passed on, or treated as borderline. Decisions stay in this browser.";
+    }
+    if (els.decisionLogMetrics) {
+      els.decisionLogMetrics.innerHTML = [
+        [summary.ACCEPT, "accepted"],
+        [summary.BORDERLINE, "borderline"],
+        [summary.DECLINE, "declined"]
+      ].map(([value, label]) => `<span><strong>${value}</strong><small>${label}</small></span>`).join("");
+    }
+    const recent = [...decisionLog].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 8);
+    if (!recent.length) {
+      els.decisionLogList.className = "decision-log-list empty";
+      els.decisionLogList.textContent = "No order decisions logged yet.";
+      return;
+    }
+    els.decisionLogList.className = "decision-log-list";
+    els.decisionLogList.innerHTML = recent.map((item) => {
+      const zone = item.zone || "Unassigned";
+      const time = new Date(item.createdAt).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+      return `<article class="decision-log-item ${item.outcome.toLowerCase()}">
+        <div class="decision-log-top"><strong>${escapeHTML(item.outcome)}</strong><span>${escapeHTML(item.company)} Â· ${escapeHTML(time)}</span></div>
+        <div class="decision-log-meta">${money.format(item.pay)} Â· ${item.miles.toFixed(1)} mi Â· ${item.minutes.toFixed(0)} min Â· ${escapeHTML(zone)}</div>
+        ${item.note ? `<div class="decision-log-note">${escapeHTML(item.note)}</div>` : ""}
+      </article>`;
+    }).join("");
   }
 
   function evaluateOffer(pay, miles, minutes) {
@@ -2164,6 +2255,36 @@
     els.offerNoteInput.value = "";
     if (!keepCompany) els.offerCompanyInput.value = settings.defaultCompany;
     renderDecision();
+  }
+
+  function logCurrentDecision() {
+    const pay = num(els.offerPayInput.value);
+    const miles = num(els.offerMilesInput.value);
+    const minutes = num(els.offerMinutesInput.value);
+    const decision = renderDecision();
+    if (decision.kind === "neutral") return toast("Enter valid pay, miles, and minutes before logging a decision.");
+    const logged = recordDecision(decision, { pay, miles, minutes });
+    if (!logged) return toast("Could not log this decision. Check the offer fields.");
+    render();
+    toast(`${logged.outcome} decision logged.`);
+  }
+
+  function recordDecision(decision, { pay, miles, minutes }) {
+    const logged = normalizeDecision({
+      id: makeId(),
+      outcome: decision.title,
+      company: els.offerCompanyInput.value,
+      zone: els.offerZoneInput.value || settings.defaultZone || "",
+      pay,
+      miles,
+      minutes,
+      note: els.offerNoteInput.value,
+      createdAt: new Date().toISOString()
+    });
+    if (!logged) return null;
+    decisionLog = [...decisionLog, logged].slice(-500);
+    writeJSON(DECISIONS_KEY, decisionLog);
+    return logged;
   }
 
   function escapeHTML(value) {
@@ -3323,6 +3444,14 @@
     return csvRowsToText([header, ...rows]);
   }
 
+  function buildDecisionCSV() {
+    const header = ["date", "decision", "company", "zone", "pay", "miles", "minutes", "note"];
+    const rows = [...decisionLog]
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+      .map((item) => [item.createdAt, item.outcome, item.company, item.zone || "", item.pay, item.miles, item.minutes, item.note || ""]);
+    return csvRowsToText([header, ...rows]);
+  }
+
   async function shareOrDownload(content, filename, type) {
     if (navigator.canShare && typeof File === "function") {
       try {
@@ -3355,6 +3484,11 @@
     toast(activeCount ? (labelMap[kind] || "CSV exported.") : `${labelMap[kind] || "CSV exported."} Header-only file because no deliveries are saved yet.`);
   }
 
+  async function exportDecisionsCSV() {
+    await shareOrDownload("ï»¿" + buildDecisionCSV(), `driveledger-decisions-${todayKey()}.csv`, "text/csv;charset=utf-8");
+    toast(decisionLog.length ? "Decision CSV exported." : "Decision CSV exported. Header-only file because no decisions are logged yet.");
+  }
+
   function buildBackupPayload(reason = "manual export") {
     return {
       app: "DriveLedger",
@@ -3366,12 +3500,14 @@
       reason,
       schema: {
         delivery: ["id", "date", "createdAt", "updatedAt", "company", "merchant", "restaurant", "earnings", "miles", "minutes", "zone", "note", "notes", "source", "ocrText", "ocrConfidence", "tags", "deleted", "version"],
+        decision: ["id", "outcome", "company", "zone", "pay", "miles", "minutes", "note", "source", "createdAt", "version"],
         settings: ["dailyGoal", "defaultCompany", "defaultZone", "gasPrice", "vehicleMpg", "maintenanceCostPerMile", "mileageDeductionRate", "minimumDollarPerMile", "minimumDollarPerHour", "minimumPayout", "maxMiles", "customZones", "theme", "appDataVersion"],
         shift: ["active", "startedAt", "endedAt", "lastSummary", "shiftHistory", "recommendation", "metrics", "appDataVersion"]
       },
       settings,
       shift,
-      deliveries
+      deliveries,
+      decisionLog
     };
   }
 
@@ -3392,10 +3528,11 @@
       return { valid: false, message: "Backup file must be a JSON object." };
     }
     const hasDeliveries = Array.isArray(parsed.deliveries);
+    const hasDecisionLog = Array.isArray(parsed.decisionLog);
     const settingsIncluded = Boolean(parsed.settings && typeof parsed.settings === "object" && !Array.isArray(parsed.settings));
     const shiftIncluded = Boolean(parsed.shift && typeof parsed.shift === "object" && !Array.isArray(parsed.shift));
-    if (!hasDeliveries && !settingsIncluded && !shiftIncluded) {
-      return { valid: false, message: "Backup must include deliveries, settings, or shift data." };
+    if (!hasDeliveries && !hasDecisionLog && !settingsIncluded && !shiftIncluded) {
+      return { valid: false, message: "Backup must include deliveries, decisions, settings, or shift data." };
     }
     const rawDeliveries = hasDeliveries ? parsed.deliveries : [];
     const importedDeliveries = rawDeliveries
@@ -3404,6 +3541,11 @@
     if (rawDeliveries.length && !importedDeliveries.length) {
       return { valid: false, message: "Backup contains deliveries, but none are valid DriveLedger records." };
     }
+    const rawDecisions = hasDecisionLog ? parsed.decisionLog : [];
+    const importedDecisions = normalizeDecisionLog(rawDecisions);
+    if (rawDecisions.length && !importedDecisions.length) {
+      return { valid: false, message: "Backup contains decisions, but none are valid DriveLedger decision records." };
+    }
     return {
       valid: true,
       app: cleanText(parsed.app || "Unknown app", 80),
@@ -3411,6 +3553,9 @@
       appDataVersion: parsed.appDataVersion || parsed.dataVersion || parsed.version || "unknown",
       deliveries: importedDeliveries,
       deliveryCount: importedDeliveries.length,
+      decisionLog: importedDecisions,
+      decisionCount: importedDecisions.length,
+      decisionIncluded: hasDecisionLog,
       settingsIncluded,
       shiftIncluded,
       settings: settingsIncluded ? normalizeSettings(parsed.settings) : null,
@@ -3431,6 +3576,7 @@
     if (els.importPreviewMeta) {
       els.importPreviewMeta.innerHTML = `
         <div><span>Deliveries</span><strong>${pendingImport.deliveryCount}</strong></div>
+        <div><span>Decisions</span><strong>${pendingImport.decisionIncluded ? pendingImport.decisionCount : "Not included"}</strong></div>
         <div><span>Settings</span><strong>${pendingImport.settingsIncluded ? "Included" : "Not included"}</strong></div>
         <div><span>Shift</span><strong>${pendingImport.shiftIncluded ? "Included" : "Not included"}</strong></div>
         <div><span>Exported</span><strong>${escapeHTML(parseBackupDate(pendingImport.exportedAt))}</strong></div>
@@ -3514,6 +3660,32 @@
     return { deliveries: merged, added, skipped };
   }
 
+  function mergeImportedDecisions(currentDecisions, importedDecisions) {
+    const seen = new Set();
+    const merged = [];
+    currentDecisions.forEach((item) => {
+      const normalized = normalizeDecision(item);
+      if (normalized && !seen.has(normalized.id)) {
+        seen.add(normalized.id);
+        merged.push(normalized);
+      }
+    });
+    let added = 0;
+    let skipped = 0;
+    importedDecisions.forEach((item) => {
+      const normalized = normalizeDecision(item);
+      if (!normalized) return;
+      if (seen.has(normalized.id)) {
+        skipped += 1;
+        return;
+      }
+      seen.add(normalized.id);
+      merged.push(normalized);
+      added += 1;
+    });
+    return { decisionLog: merged.slice(-500), added, skipped };
+  }
+
   function confirmImportBackup() {
     if (!pendingImport) return toast("Choose a backup file first.");
     const mode = els.importModeInput?.value === "replace" ? "replace" : "merge";
@@ -3522,6 +3694,7 @@
     saveImportRollback(`pre-${mode} import rollback`);
     if (mode === "replace") {
       deliveries = normalizeDeliveries(pendingImport.deliveries);
+      decisionLog = normalizeDecisionLog(pendingImport.decisionLog);
       if (pendingImport.settingsIncluded) settings = normalizeSettings(pendingImport.settings);
       if (pendingImport.shiftIncluded) shift = normalizeShift(pendingImport.shift);
       persistNormalizedState();
@@ -3533,10 +3706,12 @@
     }
     const result = mergeImportedDeliveries(deliveries, pendingImport.deliveries);
     deliveries = result.deliveries;
-    writeJSON(STORE_KEY, deliveries);
+    const decisionResult = mergeImportedDecisions(decisionLog, pendingImport.decisionLog);
+    decisionLog = decisionResult.decisionLog;
+    persistNormalizedState();
     render();
     clearPendingImport();
-    toast(`Backup merged. Added ${result.added} deliveries; skipped ${result.skipped} duplicates.`);
+    toast(`Backup merged. Added ${result.added} deliveries and ${decisionResult.added} decisions; skipped ${result.skipped + decisionResult.skipped} duplicates.`);
   }
 
   function restoreRollback() {
@@ -3545,6 +3720,7 @@
     if (!rollback || !validation.valid) return toast("No valid import rollback backup found.");
     if (!confirm(`Restore rollback from ${parseBackupDate(rollback.savedAt || rollback.exportedAt)}? This replaces current local data.`)) return;
     deliveries = normalizeDeliveries(validation.deliveries);
+    decisionLog = normalizeDecisionLog(validation.decisionLog);
     settings = validation.settingsIncluded ? normalizeSettings(validation.settings) : settings;
     shift = validation.shiftIncluded ? normalizeShift(validation.shift) : shift;
     persistNormalizedState();
@@ -3584,6 +3760,7 @@
       reason: "pre-emergency-restore rollback"
     });
     deliveries = normalizeDeliveries(validation.deliveries);
+    decisionLog = normalizeDecisionLog(validation.decisionLog);
     settings = validation.settingsIncluded ? normalizeSettings(validation.settings) : settings;
     shift = validation.shiftIncluded ? normalizeShift(validation.shift) : shift;
     persistNormalizedState();
@@ -3613,6 +3790,7 @@
     if (!doubleConfirmDanger("Clear all DriveLedger local data", "DELETE")) return toast("Clear all data canceled.");
     saveSafetySnapshot("pre-clear-all-data snapshot");
     deliveries = [];
+    decisionLog = [];
     settings = normalizeSettings({});
     shift = normalizeShift({ active: false, startedAt: null, endedAt: null, shiftHistory: [] });
     persistNormalizedState();
@@ -3666,12 +3844,13 @@
       version: DATA_VERSION
     });
     if (!delivery) return toast("Could not save this offer.");
+    const logged = recordDecision(decision, { pay, miles, minutes });
     deliveries.push(delivery);
     writeJSON(STORE_KEY, deliveries);
     clearOfferCalculator();
     render();
     showTab("today");
-    toast(`${decision.title} offer saved as a completed delivery.`);
+    toast(`${decision.title} offer saved as a completed delivery${logged ? " and decision logged" : ""}.`);
   }
 
   function flagInvalid(input) {
@@ -3756,7 +3935,9 @@
     els.calculateOfferBtn.addEventListener("click", () => renderDecision({ announce: true }));
     els.clearOfferBtn.addEventListener("click", () => { clearOfferCalculator(); toast("Calculator cleared."); });
     els.copyDecisionBtn.addEventListener("click", copyDecisionSummary);
+    els.logDecisionBtn.addEventListener("click", logCurrentDecision);
     els.saveOfferAsDeliveryBtn.addEventListener("click", saveOfferAsDelivery);
+    els.exportDecisionsBtn.addEventListener("click", exportDecisionsCSV);
     els.historyList.addEventListener("click", (event) => {
       const action = event.target.closest("[data-delete],[data-edit],[data-duplicate],[data-open-add]");
       if (!action) return;

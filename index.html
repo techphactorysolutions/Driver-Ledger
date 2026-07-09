@@ -122,6 +122,7 @@
             <div class="metric-row"><span>Worst company</span><strong id="worstCompanyToday">—</strong></div>
             <div class="metric-row"><span>Best zone</span><strong id="bestZoneToday">—</strong></div>
             <div class="metric-row"><span>Worst zone</span><strong id="worstZoneToday">—</strong></div>
+            <div class="metric-row"><span>Decisions today</span><strong id="decisionsToday">0</strong></div>
             <div class="metric-row"><span>Time working</span><strong id="timeWorking">0h 00m</strong></div>
             <h2 id="driverScoreTitle">No score yet</h2>
             <p id="driverScoreDetail" class="card-note">Start a shift and save deliveries to get live feedback.</p>
@@ -338,10 +339,25 @@
           </div>
           <div class="inline-actions offer-actions">
             <button id="calculateOfferBtn" class="secondary-btn full" type="button">Calculate Only</button>
+            <button id="logDecisionBtn" class="secondary-btn full" type="button">Log Decision</button>
             <button id="clearOfferBtn" class="secondary-btn full" type="button">Clear</button>
             <button id="copyDecisionBtn" class="secondary-btn full" type="button">Copy Decision</button>
             <button id="saveOfferAsDeliveryBtn" class="primary-btn full" type="button">Save as Completed</button>
           </div>
+        </section>
+
+        <section class="panel decision-log-card" aria-label="Order decision log">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Decision intelligence</p>
+              <h2>Order decision log</h2>
+            </div>
+            <span id="decisionLogStatus" class="status-chip">No decisions yet</span>
+          </div>
+          <p id="decisionLogSummary" class="muted">Log a recommendation to remember what you accepted, passed on, or treated as borderline. Decisions stay in this browser.</p>
+          <div id="decisionLogMetrics" class="decision-log-metrics" aria-label="Today's decision totals"></div>
+          <div id="decisionLogList" class="decision-log-list empty">No order decisions logged yet.</div>
+          <button id="exportDecisionsBtn" class="secondary-btn full" type="button">Export Decision CSV</button>
         </section>
       </section>
 

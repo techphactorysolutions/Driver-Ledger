@@ -1,5 +1,5 @@
-const CACHE_VERSION = "v34-platform-detection-audit-fix";
-const CACHE_NAME = "driveledger-v34-platform-detection-audit-fix";
+const CACHE_VERSION = "v35-decision-ledger-command-center";
+const CACHE_NAME = "driveledger-v35-decision-ledger-command-center";
 const OFFLINE_FALLBACK = "./index.html";
 const CORE_ASSETS = [
   "./",

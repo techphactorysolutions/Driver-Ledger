@@ -1,3 +1,34 @@
+## 3.8.0 persistent order decision ledger audit
+
+Scope: incremental upgrade of the uploaded v3.7.5 static PWA to close the core requirement that drivers can track order accept/decline decisions, not only calculate them.
+
+Findings and fixes:
+
+- The existing calculator produced real ACCEPT, BORDERLINE, and DECLINE recommendations, but only completed orders were retained through delivery history.
+- Added normalized local decision records under `driveledger.decisions.v1`, with outcome, company, zone, pay, miles, minutes, note, timestamp, source, and schema version.
+- Added a real **Log Decision** action for offers that are reviewed but not completed. Saving an offer as completed also records the calculator decision automatically.
+- Added Today decision count, Decide decision totals/recent history, and Decision CSV export.
+- Added JSON backup schema coverage, validated import preview, merge/replace handling, rollback restore, emergency restore, storage measurement, and clear-all handling for decisions.
+- Preserved the static PWA/local-first architecture and existing delivery/settings/shift data. Missing decision storage from older installations migrates to a safe empty array.
+
+Tests run:
+
+```text
+node --check app.js
+node --check service-worker.js
+node tools/smoke-startup.js
+python -m unittest discover -s tests -v
+```
+
+The mocked-browser smoke suite now covers decision migration, logging without creating a delivery, automatic logging when saving a completed calculator offer, decision CSV output, and command-center rendering.
+
+Remaining risks:
+
+- Decision outcomes describe the calculator recommendation; the app does not know whether a driver actually accepted or declined an offer unless the driver logs it.
+- Profit, tax, and threshold values remain estimates based on user-maintained Settings.
+- Storage remains browser-local; users should export JSON backups before clearing browser data or switching devices.
+- Real iPhone/iPad Safari testing is still recommended for share/download behavior and safe-area layout.
+
 ## 3.7.5 platform detection audit repair
 Claude's v3.7.4 package passed syntax and startup smoke, but the full Python suite failed because release metadata tests still expected v3.7.3. The service-worker cache also remained on the older Claude package repair cache. This build repairs those issues, adds platform-detection smoke coverage, and keeps the secret scan clean.
 

@@ -1,5 +1,5 @@
-const CACHE_VERSION = "v36-platform-ocr-pause";
-const CACHE_NAME = "driveledger-v36-platform-ocr-pause";
+const CACHE_VERSION = "v37-giglens-visual-security";
+const CACHE_NAME = "giglens-v37-giglens-visual-security";
 const OFFLINE_FALLBACK = "./index.html";
 const CORE_ASSETS = [
   "./",
@@ -7,8 +7,9 @@ const CORE_ASSETS = [
   "./styles.css",
   "./app.js",
   "./manifest.json",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png"
+  "./icons/giglens-icon-180.png",
+  "./icons/giglens-icon-192.png",
+  "./icons/giglens-icon-512.png"
 ];
 
 async function cacheCoreAssets() {
@@ -19,12 +20,12 @@ async function cacheCoreAssets() {
 async function deleteOldCaches() {
   const keys = await caches.keys();
   await Promise.all(keys
-    .filter((key) => key.startsWith("driveledger-") && key !== CACHE_NAME)
+    .filter((key) => (key.startsWith("giglens-") || key.startsWith("driveledger-")) && key !== CACHE_NAME)
     .map((key) => caches.delete(key)));
 }
 
 async function cachePutSafe(request, response) {
-  if (!response || !response.ok) return;
+  if (!response || !response.ok || !["basic", "default"].includes(response.type)) return;
   const cache = await caches.open(CACHE_NAME);
   await cache.put(request, response.clone());
 }
@@ -83,7 +84,10 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Core static assets use stale-while-revalidate for fast launches and safe
-  // background refreshes without a heavy build system.
-  event.respondWith(staleWhileRevalidate(request));
+  // Cache only known browser asset classes. Same-origin API-like or arbitrary
+  // URLs are deliberately left to the network and never persisted by the PWA.
+  const cacheableDestinations = new Set(["style", "script", "image", "font", "manifest"]);
+  if (cacheableDestinations.has(request.destination)) {
+    event.respondWith(staleWhileRevalidate(request));
+  }
 });

@@ -1,12 +1,27 @@
 (() => {
-  const STORE_KEY = "driveledger.deliveries.v1";
-  const DECISIONS_KEY = "driveledger.decisions.v1";
-  const SETTINGS_KEY = "driveledger.settings.v1";
-  const SHIFT_KEY = "driveledger.shift.v1";
-  const ROLLBACK_KEY = "driveledger.rollback.v1";
-  const LAST_BACKUP_KEY = "driveledger.lastBackup.v1";
-  const DATA_VERSION = 10;
-  const BACKUP_VERSION = 11;
+  const APP_NAME = "GigLens";
+  const APP_SLUG = "giglens";
+  const STORE_KEY = "giglens.deliveries.v1";
+  const DECISIONS_KEY = "giglens.decisions.v1";
+  const SETTINGS_KEY = "giglens.settings.v1";
+  const SHIFT_KEY = "giglens.shift.v1";
+  const ROLLBACK_KEY = "giglens.rollback.v1";
+  const LAST_BACKUP_KEY = "giglens.lastBackup.v1";
+  const LEGACY_STORAGE_KEYS = {
+    [STORE_KEY]: "driveledger.deliveries.v1",
+    [DECISIONS_KEY]: "driveledger.decisions.v1",
+    [SETTINGS_KEY]: "driveledger.settings.v1",
+    [SHIFT_KEY]: "driveledger.shift.v1",
+    [ROLLBACK_KEY]: "driveledger.rollback.v1",
+    [LAST_BACKUP_KEY]: "driveledger.lastBackup.v1"
+  };
+  const DATA_VERSION = 11;
+  const BACKUP_VERSION = 12;
+  const TESSERACT_OPTIONS = Object.freeze({
+    workerPath: "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js",
+    corePath: "https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1",
+    langPath: "https://tessdata.projectnaptha.com/4.0.0"
+  });
 
   const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
   const $ = (id) => document.getElementById(id);
@@ -17,6 +32,7 @@
     "Grubhub",
     "Catering",
     "Instacart",
+    "Amazon Flex",
     "Spark",
     "Roadie",
     "Other"
@@ -276,6 +292,18 @@
       localStorage.setItem(key, JSON.stringify(value));
     } catch {
       toast("Could not save. Device storage may be full or blocked.");
+    }
+  }
+
+  function migrateLegacyStorage() {
+    try {
+      for (const [nextKey, legacyKey] of Object.entries(LEGACY_STORAGE_KEYS)) {
+        if (localStorage.getItem(nextKey) !== null) continue;
+        const legacyValue = localStorage.getItem(legacyKey);
+        if (legacyValue !== null) localStorage.setItem(nextKey, legacyValue);
+      }
+    } catch {
+      // Storage can be blocked in private modes; normal read fallbacks still keep startup safe.
     }
   }
 
@@ -1027,7 +1055,7 @@
     els.trendCard.classList.remove("trend-up", "trend-down");
     if (todays.length === 0) {
       els.trendTitle.textContent = "No deliveries yet";
-      els.trendDetail.textContent = "After each delivery, DriveLedger shows whether that delivery helped or hurt your average.";
+      els.trendDetail.textContent = `After each delivery, ${APP_NAME} shows whether that delivery helped or hurt your average.`;
       return;
     }
     const last = todays[todays.length - 1];
@@ -1132,7 +1160,7 @@
     const best = recap.bestDelivery ? `${recap.bestDelivery.company} ${money.format(recap.bestDelivery.earnings)} for ${Number(recap.bestDelivery.miles || 0).toFixed(1)} mi` : "Not enough data";
     const weak = recap.weakestDelivery ? `${recap.weakestDelivery.company} ${money.format(recap.weakestDelivery.earnings)} for ${Number(recap.weakestDelivery.miles || 0).toFixed(1)} mi` : "Not enough data";
     return [
-      `DriveLedger recap for ${recap.date}`,
+      `${APP_NAME} recap for ${recap.date}`,
       `Gross earnings: ${money.format(m.earnings)}`,
       `Estimated profit: ${money.format(m.profit)}`,
       `Hours worked: ${formatHours(m.hours)}`,
@@ -2001,14 +2029,14 @@
     }
   }
 
-  function driveLedgerStorageKeys() {
+  function gigLensStorageKeys() {
     const known = [STORE_KEY, DECISIONS_KEY, SETTINGS_KEY, SHIFT_KEY, ROLLBACK_KEY, LAST_BACKUP_KEY];
     const found = new Set(known);
     try {
       if (typeof localStorage.length === "number" && typeof localStorage.key === "function") {
         for (let i = 0; i < localStorage.length; i += 1) {
           const key = localStorage.key(i);
-          if (key && key.startsWith("driveledger.")) found.add(key);
+          if (key && (key.startsWith(`${APP_SLUG}.`) || key.startsWith("driveledger."))) found.add(key);
         }
       }
     } catch {
@@ -2018,7 +2046,7 @@
   }
 
   function storageUsageEstimate() {
-    const rows = driveLedgerStorageKeys().map((key) => {
+    const rows = gigLensStorageKeys().map((key) => {
       const raw = localStorage.getItem(key) || "";
       return { key, bytes: raw.length * 2, present: raw.length > 0 };
     });
@@ -2039,13 +2067,13 @@
     const activeCount = usage.rows.filter((row) => row.present).length;
     if (els.privacyStorageStatus) els.privacyStorageStatus.textContent = activeCount ? `${formatBytes(usage.totalBytes)} local` : "Local only";
     els.storageUsageEstimate.innerHTML = `
-      <strong>${formatBytes(usage.totalBytes)}</strong> estimated DriveLedger localStorage usage
+      <strong>${formatBytes(usage.totalBytes)}</strong> estimated ${APP_NAME} localStorage usage
       <span>${activeCount} active local key${activeCount === 1 ? "" : "s"}</span>
     `;
     const presentRows = usage.rows.filter((row) => row.present);
     if (!presentRows.length) {
       els.storageUsageDetails.className = "privacy-key-list empty";
-      els.storageUsageDetails.textContent = "No saved DriveLedger data yet. Add deliveries or save settings to create local records.";
+      els.storageUsageDetails.textContent = `No saved ${APP_NAME} data yet. Add deliveries or save settings to create local records.`;
       return;
     }
     els.storageUsageDetails.className = "privacy-key-list";
@@ -2295,7 +2323,7 @@
     const zone = cleanText(els.offerZoneInput.value || settings.defaultZone || "", 80) || "Unspecified zone";
     const note = cleanText(els.offerNoteInput.value || "", 200);
     const lines = [
-      `DriveLedger order decision: ${decision.title}`,
+      `${APP_NAME} order decision: ${decision.title}`,
       `Company: ${company}`,
       `Zone: ${zone}`,
       `Pay: ${money.format(num(els.offerPayInput.value))}`,
@@ -2542,6 +2570,116 @@
     renderQuickAddPreview();
   }
 
+  function emptyVisualProfile() {
+    return { dominant: "", confidence: 0, ratios: { red: 0, orange: 0, green: 0, blue: 0 } };
+  }
+
+  function normalizeVisualProfile(profile) {
+    const empty = emptyVisualProfile();
+    if (!profile || typeof profile !== "object") return empty;
+    const dominant = ["red", "orange", "green", "blue"].includes(profile.dominant) ? profile.dominant : "";
+    const ratios = {};
+    for (const color of Object.keys(empty.ratios)) {
+      ratios[color] = Math.min(1, Math.max(0, num(profile.ratios?.[color])));
+    }
+    return {
+      dominant,
+      confidence: dominant ? Math.min(1, Math.max(0, num(profile.confidence))) : 0,
+      ratios
+    };
+  }
+
+  function classifyAccentHue(red, green, blue) {
+    const r = red / 255;
+    const g = green / 255;
+    const b = blue / 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const delta = max - min;
+    if (max < 0.28 || delta === 0 || delta / max < 0.42) return "";
+    let hue = 0;
+    if (max === r) hue = 60 * (((g - b) / delta) % 6);
+    else if (max === g) hue = 60 * (((b - r) / delta) + 2);
+    else hue = 60 * (((r - g) / delta) + 4);
+    if (hue < 0) hue += 360;
+    if (hue < 18 || hue >= 342) return "red";
+    if (hue < 55) return "orange";
+    if (hue >= 75 && hue < 172) return "green";
+    if (hue >= 182 && hue < 258) return "blue";
+    return "";
+  }
+
+  async function loadScreenshotBitmap(file) {
+    if (typeof globalThis.createImageBitmap === "function") {
+      try { return await globalThis.createImageBitmap(file); } catch (_) { /* use the Image fallback */ }
+    }
+    if (typeof globalThis.Image !== "function" || !globalThis.URL?.createObjectURL) return null;
+    const objectUrl = globalThis.URL.createObjectURL(file);
+    try {
+      return await new Promise((resolve, reject) => {
+        const image = new globalThis.Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error("Screenshot could not be decoded"));
+        image.src = objectUrl;
+      });
+    } catch (_) {
+      return null;
+    } finally {
+      globalThis.URL.revokeObjectURL(objectUrl);
+    }
+  }
+
+  async function analyzeScreenshotColors(file) {
+    // This plain-object hook keeps the color classifier deterministic in the
+    // no-browser smoke harness. Real uploaded Blob/File objects always go
+    // through pixel analysis.
+    const isRealBlob = typeof globalThis.Blob === "function" && file instanceof globalThis.Blob;
+    if (!isRealBlob && file?.visualProfile) return normalizeVisualProfile(file.visualProfile);
+    if (!file || typeof document?.createElement !== "function") return emptyVisualProfile();
+
+    const canvas = document.createElement("canvas");
+    const context = typeof canvas.getContext === "function" ? canvas.getContext("2d", { willReadFrequently: true }) : null;
+    if (!context) return emptyVisualProfile();
+    const image = await loadScreenshotBitmap(file);
+    if (!image) return emptyVisualProfile();
+
+    try {
+      const sourceWidth = image.width || image.naturalWidth || 0;
+      const sourceHeight = image.height || image.naturalHeight || 0;
+      if (!(sourceWidth > 0) || !(sourceHeight > 0)) return emptyVisualProfile();
+      canvas.width = 72;
+      canvas.height = Math.max(72, Math.min(156, Math.round(72 * sourceHeight / sourceWidth)));
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      // Offer cards and action buttons occupy the lower half in the supported
+      // driver apps. Ignoring the upper map reduces false color matches.
+      const startY = Math.floor(canvas.height * 0.45);
+      const pixels = context.getImageData(0, startY, canvas.width, canvas.height - startY).data;
+      const counts = { red: 0, orange: 0, green: 0, blue: 0 };
+      let sampled = 0;
+      for (let index = 0; index < pixels.length; index += 4) {
+        if (pixels[index + 3] < 200) continue;
+        sampled += 1;
+        const color = classifyAccentHue(pixels[index], pixels[index + 1], pixels[index + 2]);
+        if (color) counts[color] += 1;
+      }
+      if (!sampled) return emptyVisualProfile();
+      const ratios = Object.fromEntries(Object.entries(counts).map(([color, count]) => [color, count / sampled]));
+      const ranked = Object.entries(ratios).sort((a, b) => b[1] - a[1]);
+      const [topColor, topRatio] = ranked[0];
+      const secondRatio = ranked[1]?.[1] || 0;
+      const hasEnoughColor = topRatio >= 0.004;
+      const hasClearLead = secondRatio === 0 || topRatio >= secondRatio * 1.28 || topRatio - secondRatio >= 0.01;
+      if (!hasEnoughColor || !hasClearLead) return { ...emptyVisualProfile(), ratios };
+      const strength = Math.min(1, topRatio / 0.05);
+      const separation = Math.min(1, (topRatio - secondRatio) / Math.max(topRatio, 0.001));
+      return normalizeVisualProfile({ dominant: topColor, confidence: 0.4 + strength * 0.35 + separation * 0.25, ratios });
+    } catch (_) {
+      return emptyVisualProfile();
+    } finally {
+      if (typeof image.close === "function") image.close();
+    }
+  }
+
   async function scanQuickScreenshot(file) {
     if (!file) return;
     clearQuickScan(false);
@@ -2561,9 +2699,12 @@
       return;
     }
     try {
-      const result = await globalThis.Tesseract.recognize(file, "eng");
+      const [result, visualProfile] = await Promise.all([
+        globalThis.Tesseract.recognize(file, "eng", TESSERACT_OPTIONS),
+        analyzeScreenshotColors(file)
+      ]);
       quickOCRText = result?.data?.text || "";
-      quickOCRParsed = parseOCR(quickOCRText);
+      quickOCRParsed = parseOCR(quickOCRText, visualProfile);
       populateQuickFromOCR(quickOCRParsed);
       if (els.quickOcrText) els.quickOcrText.textContent = quickOCRText || "No readable text detected.";
       if (els.quickOcrDetails) els.quickOcrDetails.classList.remove("hidden");
@@ -2659,9 +2800,12 @@
     }
 
     try {
-      const result = await globalThis.Tesseract.recognize(file, "eng");
+      const [result, visualProfile] = await Promise.all([
+        globalThis.Tesseract.recognize(file, "eng", TESSERACT_OPTIONS),
+        analyzeScreenshotColors(file)
+      ]);
       lastOCRText = result?.data?.text || "";
-      lastOCRParsed = parseOCR(lastOCRText);
+      lastOCRParsed = parseOCR(lastOCRText, visualProfile);
       els.ocrText.textContent = lastOCRText || "No readable text detected.";
       els.ocrDetails.classList.remove("hidden");
       renderOCRReview(lastOCRParsed);
@@ -2846,11 +2990,11 @@
     }
   }
 
-  function parseOCR(text) {
+  function parseOCR(text, visualProfile = emptyVisualProfile()) {
     const rawText = String(text || "");
     const lines = ocrLines(rawText);
     const normalized = rawText.replace(/\s+/g, " ").trim();
-    const platformResult = detectPlatformDetailed(normalized);
+    const platformResult = detectPlatformDetailed(normalized, visualProfile);
     const platform = platformResult.platform;
     const earnings = detectEarnings(normalized);
     const miles = detectMiles(normalized);
@@ -2861,6 +3005,7 @@
     // fingerprint match was, so a strong brand hit boosts more than a weak guess.
     let confidence = 15;
     if (platform) confidence += Math.round(8 + (platformResult.platformConfidence / 100) * 16);
+    if (platform && platformResult.visualMatched) confidence += 4;
     if (merchant) confidence += 18;
     if (earnings) confidence += 28;
     if (miles) confidence += 22;
@@ -2870,6 +3015,7 @@
       platformConfidence: platformResult.platformConfidence,
       platformEvidence: platformResult.evidence,
       platformReason: platformResult.reason || "",
+      visualProfile: normalizeVisualProfile(visualProfile),
       merchant,
       merchantType: merchantResult.merchantType,
       restaurant: merchant,
@@ -2912,7 +3058,7 @@
 
     // Drop trailing addresses when OCR puts merchant and street address on one line.
     cleaned = cleaned
-      .replace(/\s+\d{1,6}\s+[A-Za-z0-9.'\-\s]+\b(?:st|street|ave|avenue|rd|road|dr|drive|blvd|boulevard|ln|lane|ct|court|pl|place|pkwy|parkway|way|hwy|highway)\b.*$/i, "")
+      .replace(/\s+\(?\d{1,6}\s+[A-Za-z0-9.'\-\s]+\b(?:st|street|ave|avenue|rd|road|dr|drive|blvd|boulevard|ln|lane|ct|court|pl|place|pkwy|parkway|way|hwy|highway)\b\)?.*$/i, "")
       .replace(/\s+\b(?:suite|ste|unit|apt|#)\s*[A-Za-z0-9-]+.*$/i, "")
       .replace(/\s+\b[A-Z]{2}\s+\d{5}(?:-\d{4})?\b.*$/i, "")
       .replace(/\s+\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}.*$/i, "")
@@ -3011,7 +3157,7 @@
   }
 
   function platformRegex() {
-    return /(doordash|door\s*dash|dashpass|uber\s*eats|ubereats|grubhub|grub\s*hub|instacart|spark\s*driver|roadie|ezcater|catervalley|deliverthat|dlivrd)/i;
+    return /(doordash|door\s*dash|dashpass|uber\s*eats|ubereats|grubhub|grub\s*hub|instacart|amazon\s*flex|spark\s*driver|roadie|ezcater|catervalley|deliverthat|dlivrd)/i;
   }
 
   function isMerchantCandidate(value) {
@@ -3126,8 +3272,11 @@
     const candidates = [];
     const knownStore = detectKnownStore(normalizedText);
     const knownRestaurant = detectKnownRestaurant(normalizedText);
-    if (knownStore) addMerchantCandidate(candidates, knownStore, 13, "known store", 0, "store");
-    if (knownRestaurant) addMerchantCandidate(candidates, knownRestaurant, 12, "known restaurant", 0, "restaurant");
+    // Whole-screenshot brand matches are fallback evidence because map labels
+    // can contain unrelated stores or restaurants. Pickup-label and line-layout
+    // candidates below receive stronger scores.
+    if (knownStore) addMerchantCandidate(candidates, knownStore, 8, "known store", 0, "store");
+    if (knownRestaurant) addMerchantCandidate(candidates, knownRestaurant, 8, "known restaurant", 0, "restaurant");
 
     extractMerchantFromTypedLabels(normalizedText, candidates);
 
@@ -3143,6 +3292,7 @@
       let score = 2;
       if (/pickup|pick up|pick-up|restaurant|merchant|store|shop|retail|grocery|from|order from|go to|head to|arrive at|navigate to/.test(lowerLine)) score += 10;
       if (/pickup|pick up|pick-up|restaurant|merchant|store|shop|retail|grocery|from|order from|go to|head to|arrive at|navigate to/.test(lowerContext)) score += 5;
+      if (/\b\d+\s*min(?:ute)?s?\s*\([^)]*\bmi\b[^)]*\)\s*total\b/i.test(previous)) score += 10;
       if (/cafe|caf(?:e|\u00e9)|coffee|pizza|taco|burger|grill|kitchen|deli|wings|bbq|barbecue|sushi|thai|mexican|chicken|subs?|sandwich|noodle|ramen|bakery|bistro|restaurant|steak|seafood|gyro|pasta|pub|bar\b|taqueria|cantina|smokehouse|diner|waffle|pancake|donut|doughnut/i.test(cleaned)) score += 5;
       if (/grocery|market|supermarket|supercenter|pharmacy|warehouse|retail|department|electronics|hardware|club\b/i.test(cleaned)) score += 5;
       if (/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+/.test(cleaned)) score += 2;
@@ -3200,6 +3350,8 @@
       [/\bearn\s*per\s*offer\b/i, 10, "Earn per Offer"],
       [/\bdash\s*now\b/i, 10, "Dash Now"],
       [/\bshop\s*(?:&|and)\s*deliver\b/i, 8, "Shop & Deliver"],
+      [/\bdeliver\s+by\s+\d{1,2}(?::\d{2})?\s*(?:am|pm)?\b/i, 7, "Deliver by time"],
+      [/\bcustomer\s+drop[ -]?off\b/i, 7, "Customer dropoff"],
       [/\bpeak\s*pay\b/i, 6, "Peak Pay"],
       [/\bfast\s*pay\b/i, 5, "Fast Pay"],
       [/\bhotspot/i, 4, "hotspots"]
@@ -3213,6 +3365,8 @@
       [/\btrip\s*request\b/i, 11, "trip request"],
       [/\btrip\s*supplement\b/i, 10, "trip supplement"],
       [/\bdelivery\s*request\b/i, 8, "delivery request"],
+      [/\bexclusive\b/i, 6, "Exclusive offer"],
+      [/\b\d+\s*min(?:ute)?s?\s*\(\s*\d+(?:[.,]\d+)?\s*mi\s*\)\s*total\b/i, 7, "total-time layout"],
       [/\baccept\s*request\b/i, 6, "Accept request"],
       [/\bdelivery\s*partner\b/i, 6, "delivery partner"],
       [/\bgo\s*offline\b/i, 3, "go offline"]
@@ -3222,7 +3376,7 @@
       [/\bgrub\s*hub\b/i, 15, "Grub Hub"],
       [/\bgrubhub\s*\+/i, 12, "Grubhub+"],
       [/\bscheduled?\s*block/i, 10, "scheduled block"],
-      [/\baccept\s*offer\b/i, 5, "Accept offer"],
+      [/\baccept\s*offer\b/i, 6, "Accept offer"],
       [/\bdiner\b/i, 4, "diner"],
       [/\btoolkit\b/i, 4, "toolkit"]
     ],
@@ -3234,6 +3388,14 @@
       [/\bbatch\b/i, 3, "batch"],
       [/\breplacement/i, 3, "replacements"],
       [/\bpick\s*&?\s*pack/i, 3, "pick & pack"]
+    ],
+    "Amazon Flex": [
+      [/\bamazon\s*flex\b/i, 15, "Amazon Flex"],
+      [/\bdelivery\s*block\b/i, 10, "delivery block"],
+      [/\binstant\s*offer\b/i, 8, "Instant Offer"],
+      [/\bsub[-\s]*same\s*day\b/i, 8, "Sub-Same Day"],
+      [/\bamazon\s*(?:com|fresh)\b/i, 6, "Amazon delivery"],
+      [/\bwarehouse\b/i, 3, "warehouse"]
     ],
     "Spark": [
       [/\bspark\s*driver\b/i, 15, "Spark Driver"],
@@ -3269,12 +3431,20 @@
     "Uber Eats": new Set(["Uber Eats", "UberEats", "Uber Eats Pro", "Uber delivery app"]),
     "Grubhub": new Set(["Grubhub", "Grub Hub", "Grubhub+"]),
     "Instacart": new Set(["Instacart"]),
+    "Amazon Flex": new Set(["Amazon Flex"]),
     "Spark": new Set(["Spark Driver"]),
     "Roadie": new Set(["Roadie"]),
     "Catering": new Set(["ezCater", "CaterValley", "DeliverThat", "dlivrd"])
   };
 
-  function detectPlatformDetailed(text) {
+  const visualPlatformHints = {
+    red: [["DoorDash", "red offer accent"]],
+    green: [["Uber Eats", "green offer accent"]],
+    orange: [["Grubhub", "orange offer accent"]],
+    blue: [["Amazon Flex", "blue offer accent"], ["Spark", "blue offer accent"]]
+  };
+
+  function detectPlatformDetailed(text, visualProfile = emptyVisualProfile()) {
     const source = String(text || "");
     if (!source.trim()) return { platform: "", platformConfidence: 0, evidence: [], scores: {} };
 
@@ -3291,6 +3461,16 @@
         hits.push({ label: labelText, weight });
       }
       if (score > 0) { scores[platform] = score; evidenceByPlatform[platform] = hits; }
+    }
+
+    const visual = normalizeVisualProfile(visualProfile);
+    if (visual.dominant && visual.confidence >= 0.4) {
+      const weight = visual.confidence >= 0.72 ? 7 : 6;
+      for (const [platform, label] of visualPlatformHints[visual.dominant] || []) {
+        scores[platform] = (scores[platform] || 0) + weight;
+        evidenceByPlatform[platform] ||= [];
+        evidenceByPlatform[platform].push({ label, weight, visual: true });
+      }
     }
 
     for (const [regex, penalties] of platformCrossPenalties) {
@@ -3350,7 +3530,14 @@
     confidence += Math.min(8, Math.max(0, margin));
     if (top.hits.length >= 2) confidence += 2;
     const evidence = top.hits.sort((a, b) => b.weight - a.weight).map((hit) => hit.label);
-    return { platform: top.platform, platformConfidence: Math.min(99, confidence), evidence, scores, reason: "" };
+    return {
+      platform: top.platform,
+      platformConfidence: Math.min(99, confidence),
+      evidence,
+      scores,
+      visualMatched: top.hits.some((hit) => hit.visual),
+      reason: ""
+    };
   }
 
   function detectPlatform(text) {
@@ -3772,19 +3959,19 @@
     const csv = "﻿" + buildCSV(kind);
     const suffixMap = { tax: "tax", daily: "daily-summary", standard: "deliveries" };
     const labelMap = { tax: "Tax CSV exported.", daily: "Daily summary CSV exported.", standard: "CSV exported." };
-    await shareOrDownload(csv, `driveledger-${suffixMap[kind] || "deliveries"}-${todayKey()}.csv`, "text/csv;charset=utf-8");
+    await shareOrDownload(csv, `${APP_SLUG}-${suffixMap[kind] || "deliveries"}-${todayKey()}.csv`, "text/csv;charset=utf-8");
     const activeCount = activeDeliveriesSorted().length;
     toast(activeCount ? (labelMap[kind] || "CSV exported.") : `${labelMap[kind] || "CSV exported."} Header-only file because no deliveries are saved yet.`);
   }
 
   async function exportDecisionsCSV() {
-    await shareOrDownload("ï»¿" + buildDecisionCSV(), `driveledger-decisions-${todayKey()}.csv`, "text/csv;charset=utf-8");
+    await shareOrDownload("ï»¿" + buildDecisionCSV(), `${APP_SLUG}-decisions-${todayKey()}.csv`, "text/csv;charset=utf-8");
     toast(decisionLog.length ? "Decision CSV exported." : "Decision CSV exported. Header-only file because no decisions are logged yet.");
   }
 
   function buildBackupPayload(reason = "manual export") {
     return {
-      app: "DriveLedger",
+      app: APP_NAME,
       version: BACKUP_VERSION,
       dataVersion: DATA_VERSION,
       appDataVersion: DATA_VERSION,
@@ -3806,7 +3993,7 @@
 
   async function exportBackup() {
     const backup = buildBackupPayload("manual export");
-    await shareOrDownload(JSON.stringify(backup, null, 2), `driveledger-backup-${todayKey()}.json`, "application/json;charset=utf-8");
+    await shareOrDownload(JSON.stringify(backup, null, 2), `${APP_SLUG}-backup-${todayKey()}.json`, "application/json;charset=utf-8");
     toast("Backup exported.");
   }
 
@@ -3832,12 +4019,12 @@
       .map((d) => normalizeDelivery({ ...d, source: validSources.has(d?.source) ? d.source : "import" }))
       .filter(Boolean);
     if (rawDeliveries.length && !importedDeliveries.length) {
-      return { valid: false, message: "Backup contains deliveries, but none are valid DriveLedger records." };
+      return { valid: false, message: `Backup contains deliveries, but none are valid ${APP_NAME} records.` };
     }
     const rawDecisions = hasDecisionLog ? parsed.decisionLog : [];
     const importedDecisions = normalizeDecisionLog(rawDecisions);
     if (rawDecisions.length && !importedDecisions.length) {
-      return { valid: false, message: "Backup contains decisions, but none are valid DriveLedger decision records." };
+      return { valid: false, message: `Backup contains decisions, but none are valid ${APP_NAME} decision records.` };
     }
     return {
       valid: true,
@@ -3901,7 +4088,7 @@
       const validation = validateBackupPayload(parsed);
       if (!validation.valid) {
         clearPendingImport(false);
-        toast(validation.message || "Invalid DriveLedger backup file.");
+        toast(validation.message || `Invalid ${APP_NAME} backup file.`);
         return;
       }
       pendingImport = validation;
@@ -4080,7 +4267,7 @@
   }
 
   function clearAllLocalData() {
-    if (!doubleConfirmDanger("Clear all DriveLedger local data", "DELETE")) return toast("Clear all data canceled.");
+    if (!doubleConfirmDanger(`Clear all ${APP_NAME} local data`, "DELETE")) return toast("Clear all data canceled.");
     saveSafetySnapshot("pre-clear-all-data snapshot");
     deliveries = [];
     decisionLog = [];
@@ -4088,7 +4275,7 @@
     shift = normalizeShift({ active: false, startedAt: null, endedAt: null, shiftHistory: [] });
     persistNormalizedState();
     render();
-    toast("All active DriveLedger data cleared. Emergency restore remains available on this browser.");
+    toast(`All active ${APP_NAME} data cleared. Emergency restore remains available on this browser.`);
   }
 
   async function copySummary() {
@@ -4278,6 +4465,7 @@
   }
 
   function init() {
+    migrateLegacyStorage();
     deliveries = normalizeDeliveries(readJSON(STORE_KEY, []));
     decisionLog = normalizeDecisionLog(readJSON(DECISIONS_KEY, []));
     settings = normalizeSettings(readJSON(SETTINGS_KEY, {}));

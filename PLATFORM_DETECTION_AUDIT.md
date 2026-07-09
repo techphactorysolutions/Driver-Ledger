@@ -1,8 +1,23 @@
-# DriveLedger Platform Detection Audit
+# GigLens Platform Detection Audit
+
+## v4.0.0 visual + workflow evidence audit
+
+The supplied screenshots were used as concrete layout references. The lower 55% pixel sampler measured the marked Uber Eats image at `9.92%` qualifying green pixels with no competing qualifying red/orange/blue pixels, and the marked DoorDash image at `9.58%` qualifying red pixels with no competing qualifying green/orange/blue pixels.
+
+GigLens now combines that visual evidence with OCR workflow evidence:
+
+- Uber Eats: green offer accent, `Exclusive`, and the `20 min (3.2 mi) total`-style line.
+- DoorDash: red offer accent, `Deliver by`, and `Customer dropoff`.
+- Grubhub: orange offer accent plus Grubhub-specific brand/workflow text.
+- Amazon Flex / Spark: blue is intentionally ambiguous and only supports distinguishing OCR evidence such as `Amazon Flex`, `delivery block`, `Spark Driver`, or `Round Robin`.
+
+Color by itself never passes the qualification gate. Generic text plus a dominant color remains `Other`; conflicting direct brands remain `Other`; and every populated field stays editable before saving. Merchant cases explicitly verify Burger King and Chick-fil-A as restaurants and Walmart/Schnucks/Best Buy as stores.
+
+Automated smoke coverage includes the two marked layouts, all supported platform fingerprints, color-only negative cases, ambiguous-blue negative cases, direct-brand conflicts, and restaurant/store typing.
 
 ## v3.9.0 app-specific evidence audit
 
-Build audited: DriveLedger v3.9.0
+Build audited: GigLens v3.9.0
 
 ### Finding
 
@@ -21,11 +36,11 @@ Mocked OCR cases verify positive recognition for DoorDash, Uber Eats, Grubhub, I
 
 ### Limitation
 
-DriveLedger has no remote screenshot classifier. It reads local OCR text, so image-only logos, highly cropped captures, new app layouts, or poor OCR may intentionally fall back to `Other` until the driver reviews the field.
+GigLens has no remote screenshot classifier. It reads local OCR text, so image-only logos, highly cropped captures, new app layouts, or poor OCR may intentionally fall back to `Other` until the driver reviews the field.
 
 ---
 
-Build audited: DriveLedger v3.7.5
+Build audited: GigLens v3.7.5
 
 ## Result
 

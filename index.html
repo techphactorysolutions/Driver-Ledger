@@ -3,33 +3,38 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'self'; script-src 'self' https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' https://cdn.jsdelivr.net https://tessdata.projectnaptha.com; img-src 'self' data: blob:; style-src 'self'; font-src 'self' data:; manifest-src 'self'; upgrade-insecure-requests" />
+  <meta name="referrer" content="no-referrer" />
   <meta name="theme-color" content="#07111f" />
-  <meta name="application-name" content="DriveLedger" />
+  <meta name="application-name" content="GigLens" />
   <meta name="color-scheme" content="dark" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="DriveLedger" />
+  <meta name="apple-mobile-web-app-title" content="GigLens" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
-  <meta name="description" content="Local-first profit tracker, mileage ledger, screenshot scanner, and order decision assistant for gig delivery drivers." />
-  <title>DriveLedger</title>
+  <meta name="description" content="GigLens turns gig-app screenshots into a private, local-first earnings, mileage, profit, and performance command center." />
+  <title>GigLens</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png" />
-  <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png" />
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
-  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/giglens-icon-180.png" />
+  <link rel="apple-touch-icon-precomposed" href="icons/giglens-icon-180.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/giglens-icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/giglens-icon-512.png" />
   <link rel="stylesheet" href="styles.css" />
-  <script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js" integrity="sha384-GJqSu7vueQ9qN0E9yLPb3Wtpd7OrgK8KmYzC8T1IysG1bcvxvIO4qtYR/D3A991F" crossorigin="anonymous"></script>
   <script defer src="app.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#tab-today">Skip to main content</a>
   <div class="app-shell">
     <header class="topbar">
-      <div>
-        <p class="eyebrow">Gig Driver Command Center</p>
-        <h1>DriveLedger</h1>
-        <p class="maker-line">Designed by Tech Phactory Solutions</p>
+      <div class="brand-lockup">
+        <img class="brand-mark" src="icons/giglens-icon-180.png" width="52" height="52" alt="" aria-hidden="true" />
+        <div>
+          <p class="eyebrow">Multi-App Driver Intelligence</p>
+          <h1>GigLens</h1>
+          <p class="maker-line">Designed by Tech Phactory Solutions</p>
+        </div>
       </div>
       <button id="shiftBtn" class="ghost-btn" type="button" aria-label="Start or end today's driving shift">Start Day</button>
     </header>
@@ -65,7 +70,10 @@
         </section>
 
         <section class="quick-actions big-actions luxury-actions" aria-label="Primary driver actions">
-          <button id="quickAddOpenBtn" class="primary-btn" data-quick-add-open type="button" aria-label="Quick add from a delivery screenshot">Quick Screenshot</button>
+          <button id="quickAddOpenBtn" class="primary-btn scan-cta" data-quick-add-open type="button" aria-label="Scan a delivery screenshot and review detected earnings">
+            <span>Scan Delivery</span>
+            <small>Screenshot to earnings in seconds</small>
+          </button>
           <details class="tool-disclosure">
             <summary>More tools</summary>
             <div class="tool-disclosure-actions">
@@ -136,7 +144,7 @@
         <section class="trend-card">
           <p class="label">Last delivery impact</p>
           <h2 id="trendTitle">No deliveries yet</h2>
-          <p id="trendDetail">After each delivery, DriveLedger shows whether that delivery helped or hurt your average.</p>
+          <p id="trendDetail">After each delivery, GigLens shows whether that delivery helped or hurt your average.</p>
         </section>
 
         <section id="dailyRecapCard" class="panel mini-report recap-card status-neutral">
@@ -216,6 +224,7 @@
                   <option value="Grubhub">Grubhub</option>
                   <option value="Catering">Catering</option>
                   <option value="Instacart">Instacart</option>
+                  <option value="Amazon Flex">Amazon Flex</option>
                   <option value="Spark">Spark</option>
                   <option value="Roadie">Roadie</option>
                   <option value="Other">Other</option>
@@ -257,6 +266,7 @@
               <option value="Grubhub">Grubhub</option>
               <option value="Catering">Catering</option>
               <option value="Instacart">Instacart</option>
+              <option value="Amazon Flex">Amazon Flex</option>
               <option value="Spark">Spark</option>
               <option value="Roadie">Roadie</option>
               <option value="Other">Other</option>
@@ -303,7 +313,7 @@
       <section id="tab-decide" class="tab-screen">
         <section class="panel form-panel">
           <h2>Accept calculator</h2>
-          <p class="muted">Enter an order before accepting it. DriveLedger compares the offer against your minimum $/mile, $/hour, payout, and distance rules.</p>
+          <p class="muted">Enter an order before accepting it. GigLens compares the offer against your minimum $/mile, $/hour, payout, and distance rules.</p>
           <div class="two-col">
             <label>Offer pay
               <input id="offerPayInput" type="text" inputmode="decimal" autocomplete="off" placeholder="9.75" />
@@ -323,6 +333,7 @@
                 <option value="Grubhub">Grubhub</option>
                 <option value="Catering">Catering</option>
                 <option value="Instacart">Instacart</option>
+                <option value="Amazon Flex">Amazon Flex</option>
                 <option value="Spark">Spark</option>
                 <option value="Roadie">Roadie</option>
                 <option value="Other">Other</option>
@@ -474,7 +485,7 @@
             </div>
             <span id="zoneHeatmapStatus" class="status-chip">Needs zones</span>
           </div>
-          <p id="zoneHeatmapExplanation" class="muted">Create custom zones in Settings or type zones on deliveries. DriveLedger ranks those areas without requesting GPS permissions.</p>
+          <p id="zoneHeatmapExplanation" class="muted">Create custom zones in Settings or type zones on deliveries. GigLens ranks those areas without requesting GPS permissions.</p>
           <div id="zoneHeatmapGrid" class="zone-heatmap-grid empty">No zone performance yet. Add zones to deliveries to compare areas.</div>
         </section>
 
@@ -486,7 +497,7 @@
             </div>
             <span id="bestTimeStatus" class="status-chip">Local data only</span>
           </div>
-          <p id="bestTimeExplanation" class="muted">DriveLedger groups your saved deliveries by hour of day to show when your gross and estimated profit pace are strongest.</p>
+          <p id="bestTimeExplanation" class="muted">GigLens groups your saved deliveries by hour of day to show when your gross and estimated profit pace are strongest.</p>
           <div class="best-time-grid" aria-label="Best time to drive insight cards">
             <article class="best-time-panel">
               <h3>Best hours today</h3>
@@ -527,7 +538,7 @@
             </div>
             <div id="smartGoalSuggestion" class="smart-goal-suggestion">Save a few past driving days to unlock a local goal recommendation.</div>
             <div id="smartGoalStats" class="smart-goal-stats empty">No historical driving days yet.</div>
-            <p id="smartGoalExplanation" class="muted small">DriveLedger calculates average earnings, average profit, and average hours from your saved local deliveries only. No fake data or outside service is used.</p>
+            <p id="smartGoalExplanation" class="muted small">GigLens calculates average earnings, average profit, and average hours from your saved local deliveries only. No fake data or outside service is used.</p>
             <div class="inline-actions">
               <button id="applySmartGoalBtn" class="primary-btn" type="button" disabled>Apply Suggested Goal</button>
               <button id="ignoreSmartGoalBtn" class="secondary-btn" type="button">Keep Current Goal</button>
@@ -541,6 +552,7 @@
               <option value="Grubhub">Grubhub</option>
               <option value="Catering">Catering</option>
               <option value="Instacart">Instacart</option>
+              <option value="Amazon Flex">Amazon Flex</option>
               <option value="Spark">Spark</option>
               <option value="Roadie">Roadie</option>
               <option value="Other">Other</option>
@@ -614,9 +626,9 @@
               </div>
               <span id="privacyStorageStatus" class="status-chip">Local only</span>
             </div>
-            <p id="privacyDataLocation" class="muted">DriveLedger stores deliveries, settings, shifts, imports, and rollback snapshots locally in this browser using namespaced <code>localStorage</code> keys. There is no account, backend, cloud sync, GPS upload, or server database in this static PWA.</p>
+            <p id="privacyDataLocation" class="muted">GigLens stores deliveries, settings, shifts, imports, and rollback snapshots locally in this browser using namespaced <code>localStorage</code> keys. There is no account, backend, cloud sync, GPS upload, or server database in this static PWA.</p>
             <div id="storageUsageEstimate" class="storage-usage-card">Storage estimate unavailable until the app renders.</div>
-            <div id="storageUsageDetails" class="privacy-key-list empty">No local DriveLedger data has been measured yet.</div>
+            <div id="storageUsageDetails" class="privacy-key-list empty">No local GigLens data has been measured yet.</div>
             <div class="privacy-action-grid">
               <button id="privacyExportAllBtn" class="secondary-btn full" type="button">Export All Data</button>
               <label class="secondary-btn full import-btn" for="importInput">Import Backup</label>
@@ -675,6 +687,7 @@
               <option value="Grubhub">Grubhub</option>
               <option value="Catering">Catering</option>
               <option value="Instacart">Instacart</option>
+              <option value="Amazon Flex">Amazon Flex</option>
               <option value="Spark">Spark</option>
               <option value="Roadie">Roadie</option>
               <option value="Other">Other</option>

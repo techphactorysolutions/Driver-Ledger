@@ -1,6 +1,26 @@
+# GigLens
+
+GigLens is a private, local-first command center for drivers who run several gig apps at once. Its fastest workflow is: take an offer or completed-delivery screenshot, scan it, review the detected app/merchant/pay/miles/time, and save it while the day is still moving. Saved deliveries then power earnings, estimated profit, mileage deduction, hourly pace, platform, zone, shift, and accept/decline analytics.
+
+Current release: `4.0.0`.
+
+## 4.0.0 — GigLens rebrand, visual screenshot intelligence, modern UI, and security hardening
+
+- Renamed the live product, PWA manifest, browser title, package, exports, cache namespace, local-storage namespace, icon assets, fallback page, and release archive from the previous brand to **GigLens**.
+- Added a non-destructive startup migration from legacy `driveledger.*` browser keys to `giglens.*`. Existing values are copied only when the new key is absent; old keys are retained as a recovery source.
+- Added a new multi-color lens/route icon in 180, 192, 512, and 1024px PNG sizes. The explicit 180px `apple-touch-icon` fixes the missing iPhone Home Screen icon.
+- Modernized the live UI with the icon brand lockup, clearer screenshot-first action, richer command-card hierarchy, improved mobile spacing, and refined cyan/mint/coral/orange/blue visual accents. All visible controls remain wired to existing or new logic.
+- Added lower-offer-card pixel analysis. A dominant green accent supports Uber Eats, red supports DoorDash, orange supports Grubhub, and blue supports Amazon Flex or Spark. Color is supporting evidence only and can never label a screenshot by itself.
+- Added Uber Eats `Exclusive` / total-time layout signals, DoorDash `Deliver by` / `Customer dropoff` signals, Amazon Flex fingerprints, and restaurant/store regression cases based on the supplied Burger King and Chick-fil-A screenshots.
+- Pinned Tesseract.js to `5.1.1`, verified its SHA-384 integrity hash, added a Content Security Policy and no-referrer policy, restricted service-worker caching, added static-host security headers, and documented GitHub branch/account controls in `SECURITY.md`.
+
+Standard static entry-point filenames such as `index.html`, `app.js`, `styles.css`, `manifest.json`, and `service-worker.js` intentionally remain standard so GitHub Pages, iOS installation, and the existing no-build architecture continue to work. Brand-bearing assets and namespaces now use `GigLens` / `giglens`.
+
+Release verification: JavaScript syntax checks, the executable browser-mock smoke suite, `41/41` Python regression tests, and desktop/mobile browser QA passed.
+
 ## 3.9.0 app-specific OCR and paused shifts
 
-This release fixes two real driver-workflow gaps without changing DriveLedger's static, local-first architecture. Screenshot classification now requires direct app branding or a distinctive app workflow before it fills in a company. Ordinary delivery words such as `trip`, `gig`, `offer`, `catering`, or `Walmart` no longer silently guess Uber Eats, DoorDash, Roadie, Spark, or Catering. When evidence conflicts or is too weak, the editable review card intentionally leaves Company as `Other` and explains that it needs review.
+This release fixes two real driver-workflow gaps without changing GigLens's static, local-first architecture. Screenshot classification now requires direct app branding or a distinctive app workflow before it fills in a company. Ordinary delivery words such as `trip`, `gig`, `offer`, `catering`, or `Walmart` no longer silently guess Uber Eats, DoorDash, Roadie, Spark, or Catering. When evidence conflicts or is too weak, the editable review card intentionally leaves Company as `Other` and explains that it needs review.
 
 The OCR merchant parser now distinguishes restaurants from stores. It recognizes common grocery, retail, pharmacy, warehouse, and hardware chains alongside restaurant patterns, applies `Restaurant:` versus `Store:` context, and preserves a normalized `merchantType` (`restaurant`, `store`, or `merchant`) on saved delivery records. Existing deliveries migrate safely by inferring a type where possible; their legacy `merchant` and `restaurant` fields remain intact for compatibility.
 
@@ -17,27 +37,27 @@ Decision records are migration-safe and stored under `driveledger.decisions.v1`.
 Release checks for this upgrade include static DOM/button binding checks, JavaScript syntax, the mocked-browser startup smoke suite, decision migration, non-delivery decision logging, automatic calculator decision capture, decision CSV export, and PWA cache-version checks.
 
 ## Platform detection audit note
-DriveLedger v3.7.5 repairs Claude's v3.7.4 package metadata mismatch and validates expanded OCR platform detection for DoorDash, Uber Eats, Grubhub, Instacart, Spark, Roadie, and Catering. See `PLATFORM_DETECTION_AUDIT.md`.
+GigLens v3.7.5 repairs Claude's v3.7.4 package metadata mismatch and validates expanded OCR platform detection for DoorDash, Uber Eats, Grubhub, Instacart, Spark, Roadie, and Catering. See `PLATFORM_DETECTION_AUDIT.md`.
 
 ## 3.7.3 Claude package repair
 The uploaded Claude ZIP was inspected. The main runtime files matched v3.7.2, but the package was missing `tests/`, `tools/`, and `_redirects`, which broke the test/smoke workflow. This release restores those files and keeps the security-audited runtime intact.
 
 ## Public security note
-DriveLedger v3.7.2 was scanned for exposed API keys, passwords, private keys, tokens, webhooks, and `.env` files. No exposed secrets were found. See `SECURITY_AUDIT.md` for details.
+GigLens v3.7.2 was scanned for exposed API keys, passwords, private keys, tokens, webhooks, and `.env` files. No exposed secrets were found. See `SECURITY_AUDIT.md` for details.
 
 ## 3.7.1 audit fix
 This build repairs a fixed-layer CSS regression from the modern UI refresh. Quick Add, toast notifications, mobile action dock, bottom tabs, and skip link now retain fixed positioning.
 
 ## Visual refresh
-DriveLedger 3.7.0 includes a presentation refresh aimed at a more modern, premium iPhone-style look while keeping the simplified, screenshot-first workflow intact.
+GigLens 3.7.0 includes a presentation refresh aimed at a more modern, premium iPhone-style look while keeping the simplified, screenshot-first workflow intact.
 
-# DriveLedger
+## Product overview
 
-DriveLedger is a local-first Progressive Web App for gig delivery drivers. It tracks daily earnings, mileage, estimated profit, tax mileage deduction, platform performance, zone performance, shift pace, screenshot OCR-assisted entry, and accept/decline order decisions.
+GigLens is a local-first Progressive Web App for gig delivery drivers. It tracks daily earnings, mileage, estimated profit, tax mileage deduction, platform performance, zone performance, shift pace, screenshot OCR-assisted entry, and accept/decline order decisions.
 
 ## Current release
 
-Version: `3.9.0` app-specific screenshot OCR and paused-shift tracking, built on the v3.8.0 persistent decision ledger.
+Version: `4.0.0`, built on the v3.9.0 app-specific OCR and paused-shift release.
 
 This release preserves the static PWA architecture. There is no backend, database server, framework, build step, or account system. The app runs from plain static files and stores user data locally in the browser.
 
@@ -59,7 +79,7 @@ This release preserves the static PWA architecture. There is no backend, databas
 - Accept Calculator v2 that recommends **ACCEPT**, **BORDERLINE**, or **DECLINE** using user-defined minimum payout, $/mile, $/hour, max-mile, gas, MPG, and maintenance rules.
 - Accept Calculator v2 shows gross $/mile, gross hourly pace, estimated profit, profit $/mile, profit hourly pace, and pass/fail threshold rows.
 - Accept Calculator supports Calculate Only, Save as Completed, Clear, Copy Decision, zone capture, and optional note capture.
-- Screenshot OCR review-first workflow with strict app-specific evidence for DoorDash, Uber Eats, Grubhub, Instacart, Spark, Roadie, and supported catering services; weak or conflicting evidence stays editable instead of guessing.
+- Screenshot OCR review-first workflow with strict app-specific and visual supporting evidence for DoorDash, Uber Eats, Grubhub, Instacart, Amazon Flex, Spark, Roadie, and supported catering services; weak or conflicting evidence stays editable instead of guessing.
 - OCR merchant parsing distinguishes restaurants, grocery/retail/pharmacy stores, and unknown merchants; the review card, history, backups, and normalized delivery records retain the merchant type.
 - Existing Add tab manual delivery entry with optional minutes, zone, notes, and **Save + Add Another** support.
 - Delivery edit, duplicate, delete, and undo-delete support.
@@ -68,7 +88,7 @@ This release preserves the static PWA architecture. There is no backend, databas
 - Dedicated Analytics tab with platform performance, zone performance, best/worst labels, hourly earnings insights, and plain CSS performance bars.
 - Local driver coaching with a Daily Recap card, copyable recap text, best/weakest delivery analysis, platform/zone suggestions, and saved end-shift recap history.
 - Tax & Export Center with standard CSV, tax CSV, daily summary CSV, JSON backup, validated backup import preview, merge/replace import modes, duplicate-ID merge safety, and emergency rollback restore.
-- Local-first storage using browser `localStorage` under `driveledger.*` keys.
+- Local-first storage using browser `localStorage` under `giglens.*` keys, with non-destructive migration from legacy `driveledger.*` keys.
 - Phase 13 mobile polish with a sticky one-hand action dock on iPhone-sized screens.
 - Phase 14 installable PWA polish with stronger manifest metadata, cache-versioned offline app shell, offline status messaging, and install/deploy QA guidance.
 - Smart Goal System in Settings that recommends a daily goal from local historical average earnings, profit, and hours by day of week, with Apply or Keep Current Goal actions.
@@ -90,7 +110,7 @@ This release preserves the static PWA architecture. There is no backend, databas
 
 ## 3.6.4 Subtle design credit repair notes
 
-This release adds visible app branding and improves GitHub Pages deploy readiness after a failed Pages deployment. DriveLedger now includes a small premium credit line that says **Designed by Tech Phactory Solutions**, plus GitHub Pages support files: `.nojekyll` to disable Jekyll processing and `404.html` as a static fallback. Runtime files still use relative paths so the app can run from a project URL such as `https://techphactorysolutions.github.io/Driver-Ledger/`.
+This release adds visible app branding and improves GitHub Pages deploy readiness after a failed Pages deployment. GigLens now includes a small premium credit line that says **Designed by Tech Phactory Solutions**, plus GitHub Pages support files: `.nojekyll` to disable Jekyll processing and `404.html` as a static fallback. Runtime files still use relative paths so the app can run from a project URL such as `https://techphactorysolutions.github.io/Driver-Ledger/`.
 
 GitHub Pages quick deploy:
 
@@ -103,7 +123,7 @@ GitHub Pages quick deploy:
 
 ## 3.6.2 Screenshot-First Quick Add notes
 
-Quick Add is now screenshot-first because the fastest real workflow is: upload an order screenshot, let DriveLedger detect company/restaurant/pay/miles/minutes, review the fields, and save. Manual quick entry still exists inside the same sheet as the fallback.
+Quick Add is now screenshot-first because the fastest real workflow is: upload an order screenshot, let GigLens detect company/restaurant/pay/miles/minutes, review the fields, and save. Manual quick entry still exists inside the same sheet as the fallback.
 
 Changes:
 
@@ -123,7 +143,7 @@ This refinement responds to real app testing feedback that the app had become to
 
 ## Phase 20 Netlify Release Package notes
 
-Phase 20 prepares DriveLedger for simple Netlify Drop deployment. The package keeps all runtime files at the root or correctly referenced from the root, adds a Netlify `_redirects` static fallback, adds `DEPLOYMENT.md`, documents Netlify Drop deployment, iPhone/iPad installation, offline reload, localStorage persistence, and troubleshooting. No backend, build step, framework, localhost-only runtime path, environment variable, or cloud database was added.
+Phase 20 prepares GigLens for simple Netlify Drop deployment. The package keeps all runtime files at the root or correctly referenced from the root, adds a Netlify `_redirects` static fallback, adds `DEPLOYMENT.md`, documents Netlify Drop deployment, iPhone/iPad installation, offline reload, localStorage persistence, and troubleshooting. No backend, build step, framework, localhost-only runtime path, environment variable, or cloud database was added.
 
 ### Netlify Drop quick deploy
 
@@ -138,7 +158,7 @@ For the full deployment checklist, see `DEPLOYMENT.md`.
 
 ## Phase 19 Privacy and Data Control Center notes
 
-Phase 19 adds a clear local privacy and data control center in Settings. It explains that DriveLedger data stays in browser `localStorage`, estimates local DriveLedger storage usage, exposes Export All Data and Import Backup entry points, adds double-confirmed Reset Settings Only, Reset Deliveries Only, and Clear All Local Data actions, and provides emergency restore from the latest backup/export/import rollback snapshot available on the device. No account system, backend, cloud sync, GPS upload, analytics service, or dark-pattern destructive flow was added.
+Phase 19 adds a clear local privacy and data control center in Settings. It explains that GigLens data stays in browser `localStorage`, estimates local GigLens storage usage, exposes Export All Data and Import Backup entry points, adds double-confirmed Reset Settings Only, Reset Deliveries Only, and Clear All Local Data actions, and provides emergency restore from the latest backup/export/import rollback snapshot available on the device. No account system, backend, cloud sync, GPS upload, analytics service, or dark-pattern destructive flow was added.
 
 ## Phase 18 Manual Zone Heatmap notes
 
@@ -146,11 +166,11 @@ Phase 18 adds a GPS-free zone system. Users can define custom zones in Settings,
 
 ## Phase 17 Best Time to Drive notes
 
-Phase 17 adds local-only Best Time to Drive insights in the Analytics tab. DriveLedger groups saved deliveries by hour of day, calculates average gross/hour and estimated profit/hour for each bucket, highlights today’s best hours, shows historical best hours when at least two completed past driving days exist, and surfaces weak hours that may need caution. No external chart library, backend, AI API, or fake data is used.
+Phase 17 adds local-only Best Time to Drive insights in the Analytics tab. GigLens groups saved deliveries by hour of day, calculates average gross/hour and estimated profit/hour for each bucket, highlights today’s best hours, shows historical best hours when at least two completed past driving days exist, and surfaces weak hours that may need caution. No external chart library, backend, AI API, or fake data is used.
 
 ## Phase 16 Smart Goal notes
 
-Phase 16 adds a local-only Smart Goal System. The recommendation excludes today’s partial deliveries, calculates historical average earnings, estimated profit, and hours by day of week, then suggests a daily goal using the current weekday when enough matching history exists. If the current weekday does not have enough history, DriveLedger falls back to broader saved driving days. If there is not enough history, the app shows a helpful empty state and disables Apply Suggested Goal.
+Phase 16 adds a local-only Smart Goal System. The recommendation excludes today’s partial deliveries, calculates historical average earnings, estimated profit, and hours by day of week, then suggests a daily goal using the current weekday when enough matching history exists. If the current weekday does not have enough history, GigLens falls back to broader saved driving days. If there is not enough history, the app shows a helpful empty state and disables Apply Suggested Goal.
 
 ## v3 Release Candidate notes
 
@@ -188,7 +208,7 @@ unsafe NaN / Infinity / undefined / null UI output checks
 
 ### Known limitations
 
-- DriveLedger stores data in browser `localStorage`; users should export JSON backups regularly.
+- GigLens stores data in browser `localStorage`; users should export JSON backups regularly.
 - Screenshot OCR depends on the remote Tesseract.js CDN if the library has not already loaded.
 - OCR is still heuristic: cropped, blurry, stylized, or newly redesigned app screenshots may need a manual Company or merchant correction in the review card.
 - Smoke tests use a mocked browser environment, not real iPhone/iPad Safari automation.
@@ -221,14 +241,14 @@ unsafe NaN / Infinity / undefined / null UI output checks
 
 ## Phase 14 PWA Install, Offline, and Release Polish notes
 
-Phase 14 focuses on making DriveLedger a more polished installable PWA while keeping the app static, local-first, and framework-free.
+Phase 14 focuses on making GigLens a more polished installable PWA while keeping the app static, local-first, and framework-free.
 
 PWA changes include:
 
 ```text
 install-ready manifest metadata
-DriveLedger Driver Command Center long app name
-DriveLedger short app name
+GigLens Driver Command Center long app name
+GigLens short app name
 standalone display mode
 finance/productivity/utilities categories
 verified 192px and 512px icons
@@ -249,7 +269,7 @@ Core tracking, quick add, history, analytics, exports, backup/restore, and local
 2. Open the hosted site in Safari.
 3. Tap **Share**.
 4. Tap **Add to Home Screen**.
-5. Open DriveLedger from the Home Screen icon.
+5. Open GigLens from the Home Screen icon.
 6. Add a test delivery and reload to confirm localStorage persistence.
 7. Turn on Airplane Mode and reopen the app to confirm the cached shell loads.
 
@@ -290,7 +310,7 @@ Core tracking, quick add, history, analytics, exports, backup/restore, and local
 
 ## Phase 13 Mobile Polish and One-Hand UX notes
 
-Phase 13 focuses on making DriveLedger feel more like a premium iPhone PWA without adding a framework, backend, or heavy library. The data model and business logic from previous phases remain intact.
+Phase 13 focuses on making GigLens feel more like a premium iPhone PWA without adding a framework, backend, or heavy library. The data model and business logic from previous phases remain intact.
 
 Mobile UX improvements include:
 
@@ -314,7 +334,7 @@ The sticky mobile action dock is visible on small screens and uses the same exis
 
 ## Phase 12 Driver Coaching and Daily Recaps notes
 
-Phase 12 makes DriveLedger feel more intelligent without using any AI APIs. Recaps are generated locally from saved delivery data, current Settings, and the centralized Profit Engine.
+Phase 12 makes GigLens feel more intelligent without using any AI APIs. Recaps are generated locally from saved delivery data, current Settings, and the centralized Profit Engine.
 
 The Today screen now includes a **Daily Recap** coaching card with:
 
@@ -339,7 +359,7 @@ The **Copy Recap** button copies a plain-text summary suitable for notes, texts,
 
 ## Phase 11 Backup, Restore, and Data Safety notes
 
-Phase 11 makes local-first backup import safer. Selecting a backup no longer immediately replaces data. DriveLedger now parses and validates the JSON first, then shows a preview with:
+Phase 11 makes local-first backup import safer. Selecting a backup no longer immediately replaces data. GigLens now parses and validates the JSON first, then shows a preview with:
 
 ```text
 delivery count
@@ -434,7 +454,7 @@ Editing preserves the delivery ID and original created timestamp while updating 
 
 ## Phase 7 Centralized Profit Engine notes
 
-Phase 7 consolidates DriveLedger's profit and efficiency math into a single `ProfitEngine` section in `app.js`. The UI still uses plain HTML, CSS, and JavaScript, but repeated formulas are now routed through reusable calculation helpers.
+Phase 7 consolidates GigLens's profit and efficiency math into a single `ProfitEngine` section in `app.js`. The UI still uses plain HTML, CSS, and JavaScript, but repeated formulas are now routed through reusable calculation helpers.
 
 Centralized helpers cover:
 
@@ -500,7 +520,7 @@ Phase 6 also fixed a default-settings normalization issue where missing numeric 
 
 ## Phase 5 OCR review notes
 
-Screenshot scanning is now a review-first workflow. OCR never silently saves a delivery. After a screenshot is selected, DriveLedger shows a processing state and then an editable review card.
+Screenshot scanning is now a review-first workflow. OCR never silently saves a delivery. After a screenshot is selected, GigLens shows a processing state and then an editable review card.
 
 The OCR review card includes:
 
@@ -614,17 +634,20 @@ shiftHistory
 appDataVersion
 ```
 
-On startup, DriveLedger normalizes and re-saves the local state. This gives older saved data the new fields without requiring a backend migration. Corrupted JSON or impossible values are safely defaulted or discarded instead of crashing the app.
+On startup, GigLens normalizes and re-saves the local state. This gives older saved data the new fields without requiring a backend migration. Corrupted JSON or impossible values are safely defaulted or discarded instead of crashing the app.
 
 ## Local data keys
 
-DriveLedger currently uses these localStorage keys:
+GigLens currently writes these localStorage keys:
 
-- `driveledger.deliveries.v1`
-- `driveledger.settings.v1`
-- `driveledger.shift.v1`
-- `driveledger.rollback.v1`
-- `driveledger.lastBackup.v1`
+- `giglens.deliveries.v1`
+- `giglens.decisions.v1`
+- `giglens.settings.v1`
+- `giglens.shift.v1`
+- `giglens.rollback.v1`
+- `giglens.lastBackup.v1`
+
+On the first v4 launch, matching legacy `driveledger.*` values are copied into these names only when no GigLens value exists. The legacy values are not deleted automatically.
 
 ## Run locally
 
@@ -652,7 +675,7 @@ See `DEPLOYMENT.md` for the full deployment, install, offline, and troubleshooti
 2. Open the hosted site in Safari.
 3. Tap Share.
 4. Tap **Add to Home Screen**.
-5. Launch DriveLedger from the Home Screen icon.
+5. Launch GigLens from the Home Screen icon.
 6. Add a test delivery, reload/reopen, and confirm it persists.
 
 ## Tests

@@ -1,3 +1,15 @@
+# Changelog
+
+## 4.0.0 — GigLens
+
+- Renamed the product and brand-bearing namespaces/assets to GigLens, with non-destructive migration from legacy local-storage keys.
+- Added real 180/192/512/1024px GigLens icons and explicit iPhone Home Screen icon metadata.
+- Added color-assisted platform detection using lower-card pixels: green Uber Eats, red DoorDash, orange Grubhub, and ambiguous blue support for Amazon Flex/Spark. Color cannot qualify a platform alone.
+- Added supplied-layout OCR fingerprints, Amazon Flex support, and stronger restaurant/store parsing coverage.
+- Refreshed the screenshot-first command-center UI while preserving every existing working feature and static architecture.
+- Pinned Tesseract.js 5.1.1 with verified SRI, added CSP/security headers, restricted service-worker caching, and added `SECURITY.md`.
+- Bumped data schema to `11`, backup schema to `12`, package to `4.0.0`, and cache to `giglens-v37-giglens-visual-security`.
+
 ## 3.7.5 — Platform detection audit repair
 - Reviewed Claude's v3.7.4 platform-detection package.
 - Fixed release metadata/test mismatch where tests still expected v3.7.3.
@@ -27,7 +39,7 @@
 - Improved glassmorphism, gradients, card hierarchy, input styling, top bar, tab bar, and action button polish.
 - Preserved all existing functionality while focusing this pass on presentation.
 
-# Changelog
+## Historical release history
 
 ## 3.9.0 — App-specific OCR and paused shifts
 
@@ -113,7 +125,7 @@
 
 - Completed Phase 19 Privacy and Data Control Center.
 - Added a local privacy/data control card in Settings.
-- Added clear explanation that DriveLedger data is stored locally in browser `localStorage` under `driveledger.*` keys.
+- Added clear explanation that GigLens data is stored locally in browser `localStorage` under `driveledger.*` keys.
 - Added localStorage usage estimate and per-key size details.
 - Added Export All Data using the existing JSON backup format.
 - Added Import Backup access from the privacy center, reusing the existing validated import preview.
@@ -159,7 +171,7 @@
 
 ## 3.0.0
 
-- Completed the final release audit and bug bash for `DriveLedger_v3_Release_Candidate.zip`.
+- Completed the final release audit and bug bash for `GigLens_v3_Release_Candidate.zip`.
 - Confirmed app startup, Today dashboard, Quick Add, manual Add, OCR review, Accept Calculator, History, Analytics, exports, backup/import, settings, shifts, daily recaps, PWA manifest, and service worker test paths.
 - Added final release-candidate static tests for package metadata, docs, service-worker cache version, and visible button wiring.
 - Bumped package version to `3.0.0`.

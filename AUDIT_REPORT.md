@@ -1,3 +1,58 @@
+# GigLens Audit Report
+
+## 4.0.0 rebrand, visual classifier, UI, icon, and publishing-security audit
+
+Scope: incrementally upgrade the existing static/local-first PWA without a backend, framework, build system, or destructive data rewrite.
+
+### Implemented
+
+- Renamed the live app to **GigLens** across HTML metadata, manifest, package/export/cache/storage namespaces, fallback page, documentation, and brand-bearing icon filenames.
+- Added `migrateLegacyStorage()` so existing `driveledger.*` values copy to `giglens.*` only when a destination is absent. Legacy keys are retained and all records still pass the existing normalization pipeline.
+- Generated and installed a purpose-built lens/route icon at 180, 192, 512, and 1024px. Added the exact 180px Apple touch icon required by iPhone Home Screen installation.
+- Added real lower-card pixel sampling and HSV accent classification. Green supports Uber Eats, red DoorDash, orange Grubhub, and blue Amazon Flex/Spark; visual evidence never qualifies a platform by itself.
+- Added layout evidence from the supplied screenshots, Amazon Flex normalization/select options, and Burger King / Chick-fil-A restaurant regression cases. Existing known-store parsing remains active.
+- Modernized the command-center presentation and screenshot CTA without removing or orphaning controls.
+- Pinned Tesseract.js `5.1.1`, verified SHA-384 SRI, added CSP/referrer controls, `_headers`, `SECURITY.md`, externalized the fallback script, and restricted service-worker caching to known same-origin asset destinations.
+- Kept standard web entry files unchanged because GitHub Pages and the no-build PWA depend on them. Brand-bearing files use `giglens-*`.
+
+### Files changed
+
+`index.html`, `styles.css`, `app.js`, `manifest.json`, `service-worker.js`, `package.json`, `404.html`, `404.js`, `_redirects`, `_headers`, `SECURITY.md`, `README.md`, `AUDIT_REPORT.md`, `CHANGELOG.md`, `DEPLOYMENT.md`, `SECURITY_AUDIT.md`, `PLATFORM_DETECTION_AUDIT.md`, `tests/test_static_app.py`, `tools/smoke-startup.js`, and `icons/giglens-icon-{180,192,512,1024}.png`.
+
+### Verification
+
+```text
+node --check app.js
+node --check service-worker.js
+node --check 404.js
+node tools/smoke-startup.js
+python -m unittest discover -s tests -v
+```
+
+Release result: JavaScript syntax checks passed, the executable startup/workflow smoke suite passed, and all `41/41` Python static/regression tests passed.
+
+Browser QA covered desktop and 375×844 mobile rendering, horizontal overflow, live Quick Add opening, Amazon Flex selector presence, Start/Pause/Resume/End shift logic, Home Screen icon metadata, and browser console/security-policy warnings. The supplied image pixel check produced a clear green result for Uber Eats and clear red result for DoorDash.
+
+### Remaining risks
+
+- OCR is probabilistic. Crops, compression, overlays, future app redesigns, accessibility themes, or unusual colors can reduce evidence; ambiguous results deliberately remain editable or `Other`.
+- Blue is shared by multiple apps and is never enough to choose Amazon Flex versus Spark without text evidence.
+- Tesseract worker/core/language assets are pinned third-party CDN resources. SRI protects the entry script; fully vendoring OCR assets would further reduce CDN availability risk.
+- Data is device/browser-local. Users should export backups before clearing Safari data or changing devices.
+- No static app can prevent a compromised GitHub administrator or device from replacing files; repository protection and maintainer account security remain operational requirements.
+
+### Manual QA checklist
+
+- Publish only the v4 ZIP contents at the GitHub repository root and confirm `.nojekyll` is present.
+- In iPhone Safari, remove any old shortcut, reload the HTTPS site, use Add to Home Screen, and confirm the GigLens icon/name appear.
+- Scan the supplied Uber Eats screenshot; confirm Uber Eats, Burger King, restaurant type, `$9.98`, `3.2 mi`, and `20 min`, then review before saving.
+- Scan the supplied DoorDash screenshot; confirm DoorDash, Chick-fil-A, restaurant type, `$7.40`, and `2.6 mi`, then review before saving.
+- Test at least one Grubhub, Spark, Amazon Flex, Instacart, Roadie, catering, and unknown screenshot; confirm unknown/ambiguous captures remain `Other`.
+- Start a day, pause for a break, resume, add a delivery, and end the day; confirm break time is excluded from active hourly pace.
+- Reload online once, then test offline shell loading. Confirm OCR fails safely when its CDN is unavailable.
+- Export JSON, import it in a separate test profile, and verify deliveries, decisions, settings, and shifts survive.
+- Enable GitHub branch protection, required reviews/checks, least-privilege Pages deployment, and maintainer two-factor authentication.
+
 ## 3.9.0 app-specific OCR and paused-shift audit
 
 Scope: targeted upgrade of the existing static/local-first PWA after driver feedback that screenshot OCR was confusing DoorDash and Uber Eats, forcing stores into restaurant labels, and offering no way to take a break without ending the day.
@@ -76,7 +131,7 @@ Audit found one real UI regression introduced by the 3.7.0 visual refresh: a bro
 ## UI refresh addendum
 This pass focused on visual refinement only. Core logic, storage, OCR, analytics, and exports were preserved. Styles were modernized to give the app a more premium and interesting feel while keeping the simplified surface layout.
 
-# DriveLedger Audit Report
+# GigLens Audit Report
 
 ## 3.6.4 Subtle Tech Phactory Design Credit Audit
 
@@ -139,7 +194,7 @@ Result: all tests passed.
 
 ### Scope
 
-Used `DriveLedger_v3_6_0_Luxury_OCR_Refinement.zip` as the base. The user reported that screenshot OCR still had trouble identifying the restaurant/store. This pass focused only on OCR merchant parsing, tests, docs, package metadata, and cache versioning. No backend, framework, GPS, account system, or UI redesign was added.
+Used `GigLens_v3_6_0_Luxury_OCR_Refinement.zip` as the base. The user reported that screenshot OCR still had trouble identifying the restaurant/store. This pass focused only on OCR merchant parsing, tests, docs, package metadata, and cache versioning. No backend, framework, GPS, account system, or UI redesign was added.
 
 ### Findings / implementation
 
@@ -172,7 +227,7 @@ Result: `npm run syntax` passed, `npm run smoke` passed, and Python unittest pas
 
 ### Scope
 
-Used the latest DriveLedger Phase 20 Netlify Release Package ZIP as the base. The goal was to respond to testing feedback that the app felt cluttered and that screenshot OCR did not detect the restaurant/store name reliably enough. The app remains a static local-first PWA with no backend, framework, build step, account system, GPS dependency, or cloud data store.
+Used the latest GigLens Phase 20 Netlify Release Package ZIP as the base. The goal was to respond to testing feedback that the app felt cluttered and that screenshot OCR did not detect the restaurant/store name reliably enough. The app remains a static local-first PWA with no backend, framework, build step, account system, GPS dependency, or cloud data store.
 
 ### Findings / implementation
 
@@ -208,7 +263,7 @@ Result after refinement: `npm run syntax` passed, `npm run smoke` passed, and Py
 
 ### Scope
 
-Used the latest DriveLedger Phase 19 Privacy and Data Control Center ZIP as the base and prepared the static PWA package for simple Netlify Drop deployment. No backend, framework, build step, environment variable, database server, account system, or runtime localhost dependency was added.
+Used the latest GigLens Phase 19 Privacy and Data Control Center ZIP as the base and prepared the static PWA package for simple Netlify Drop deployment. No backend, framework, build step, environment variable, database server, account system, or runtime localhost dependency was added.
 
 ### Findings / implementation
 
@@ -241,13 +296,13 @@ Result after Phase 20 implementation: `npm run syntax` passed, `npm run smoke` p
 
 ### Scope
 
-Used the latest DriveLedger Phase 18 Zone Heatmap ZIP as the base and added a privacy/data control center while preserving the static local-first PWA architecture. No backend, account system, cloud storage, GPS upload, analytics service, framework, or build step was added.
+Used the latest GigLens Phase 18 Zone Heatmap ZIP as the base and added a privacy/data control center while preserving the static local-first PWA architecture. No backend, account system, cloud storage, GPS upload, analytics service, framework, or build step was added.
 
 ### Findings / implementation
 
 - Added a Privacy and Data Control Center card in Settings.
-- Added plain-language explanation that DriveLedger stores data locally in browser `localStorage` under namespaced `driveledger.*` keys.
-- Added localStorage usage estimation for DriveLedger keys.
+- Added plain-language explanation that GigLens stores data locally in browser `localStorage` under namespaced `driveledger.*` keys.
+- Added localStorage usage estimation for GigLens keys.
 - Added Export All Data, reusing the existing JSON backup pipeline.
 - Added Import Backup entry point that reuses the existing validated preview, merge/replace, and rollback-safe import workflow.
 - Added double-confirmed Reset Settings Only.
@@ -272,7 +327,7 @@ Result after Phase 19 implementation: `npm run syntax` passed, `npm run smoke` p
 
 ### Scope
 
-Used the latest DriveLedger Phase 17 Best Time to Drive ZIP as the base and added a simple GPS-free zone heatmap. The app remains a static local-first PWA. No backend, GPS permission, mapping API, external chart library, framework, or fake data source was added.
+Used the latest GigLens Phase 17 Best Time to Drive ZIP as the base and added a simple GPS-free zone heatmap. The app remains a static local-first PWA. No backend, GPS permission, mapping API, external chart library, framework, or fake data source was added.
 
 ### Findings / implementation
 
@@ -302,7 +357,7 @@ Result after Phase 18 implementation: `npm run syntax` passed, `npm run smoke` p
 
 ### Scope
 
-Used the latest DriveLedger Phase 16 Smart Goal ZIP as the base and added Best Time to Drive insights without changing the static PWA architecture. No backend, framework, external chart library, AI API, or fake data source was added.
+Used the latest GigLens Phase 16 Smart Goal ZIP as the base and added Best Time to Drive insights without changing the static PWA architecture. No backend, framework, external chart library, AI API, or fake data source was added.
 
 ### Findings / implementation
 
@@ -331,7 +386,7 @@ Result after Phase 17 implementation: `npm run syntax` passed, `npm run smoke` p
 
 ### Scope
 
-Used the latest DriveLedger v3 Release Candidate ZIP as the base and added the Smart Goal System without changing the static PWA architecture. No backend, framework, cloud service, or fake data source was added.
+Used the latest GigLens v3 Release Candidate ZIP as the base and added the Smart Goal System without changing the static PWA architecture. No backend, framework, cloud service, or fake data source was added.
 
 ### Findings / implementation
 
@@ -475,7 +530,7 @@ python unittest: Ran 27 tests — OK
 
 ### Scope
 
-Used the Phase 13 Mobile Polish ZIP as the base and kept DriveLedger as a plain static local-first PWA. No backend, framework, build system, account system, or cloud database was added.
+Used the Phase 13 Mobile Polish ZIP as the base and kept GigLens as a plain static local-first PWA. No backend, framework, build system, account system, or cloud database was added.
 
 ### Findings
 
@@ -1431,7 +1486,7 @@ Use this checklist on iPhone/iPad Safari or a hosted Netlify build:
 
 ---
 
-# DriveLedger Phase 5 Audit Report
+# GigLens Phase 5 Audit Report
 
 ## Phase
 
@@ -1439,7 +1494,7 @@ Phase 5 — Screenshot OCR Review System
 
 ## Base ZIP
 
-`DriveLedger_v2_4_0_Phase4_Quick_Add.zip`
+`GigLens_v2_4_0_Phase4_Quick_Add.zip`
 
 ## Objective
 

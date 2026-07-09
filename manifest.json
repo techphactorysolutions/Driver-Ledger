@@ -1,7 +1,7 @@
 {
-  "name": "DriveLedger Driver Command Center",
-  "short_name": "DriveLedger",
-  "description": "Designed by Tech Phactory Solutions. Local-first gig-driver command center for earnings, miles, profit, taxes, platform and zone performance, app-specific OCR capture, paused shifts, and order decision tracking.",
+  "name": "GigLens Multi-App Driver Command Center",
+  "short_name": "GigLens",
+  "description": "Designed by Tech Phactory Solutions. Private, local-first screenshot capture and performance intelligence for multi-app gig drivers.",
   "id": "./",
   "start_url": "./",
   "scope": "./",
@@ -23,13 +23,13 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "icons/giglens-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "icons/giglens-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

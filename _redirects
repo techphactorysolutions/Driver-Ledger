@@ -1,3 +1,3 @@
-# Netlify static fallback for DriveLedger
+# Netlify static fallback for GigLens
 # Existing static assets are served directly; unknown routes fall back to the app shell.
 /*    /index.html   200

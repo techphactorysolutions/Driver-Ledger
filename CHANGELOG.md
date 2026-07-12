@@ -1,3 +1,14 @@
+## 4.2.1 — Qualified app detection, bounded screenshot analysis, and offline fallback repair
+
+- Added per-platform qualification gates so generic words such as `trip`, `gig`, `Walmart`, `catering`, `batch`, `replacement`, `accept offer`, or `guaranteed` cannot silently label a screenshot.
+- Kept distinctive supplied-layout evidence working: DoorDash can qualify from `Deliver by` plus `Customer dropoff`, and Uber Eats can qualify from `Exclusive` plus the guaranteed/total offer layout.
+- Added direct-brand conflict handling and close unbranded-score handling; uncertain screenshots remain editable as `Other`, and accent color cannot resolve an explicit text conflict.
+- Recognized a visible `Spark` identity when it appears with a delivery workflow while continuing to reject `Walmart` alone.
+- Bounded optional accent analysis with a 6-second bitmap timeout and a 260px sample-height cap so color decoding cannot stall completed OCR or allocate an oversized canvas.
+- Repaired service-worker fallback behavior for non-OK navigation responses and complete network/cache failures.
+- Bumped the package to `4.2.1` and the cache to `giglens-v421-giglens-bug-fix`. Data schema `15` and backup schema `16` are unchanged.
+- Expanded executable regressions for valid DoorDash/Uber/Spark layouts, ten generic/conflicting non-guess cases, text-conflict versus accent handling, stalled image decoding, canvas bounds, and offline fallback paths.
+
 ## 4.2.0 — Full audit, safer detection, date-aware tax estimates, and UI/performance polish
 
 - Restricted similar-screenshot platform learning to shared app-specific evidence so generic delivery words cannot spread a wrong label.

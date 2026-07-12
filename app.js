@@ -21,6 +21,8 @@
   const OCR_INIT_TIMEOUT_MS = 20000;
   const OCR_RECOGNIZE_TIMEOUT_MS = 45000;
   const OCR_TERMINATE_TIMEOUT_MS = 3000;
+  const SCREENSHOT_ACCENT_TIMEOUT_MS = 6000;
+  const SCREENSHOT_ACCENT_MAX_HEIGHT = 260;
   const OCR_LIBRARY_URL = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
   const OCR_LIBRARY_INTEGRITY = "sha384-GJqSu7vueQ9qN0E9yLPb3Wtpd7OrgK8KmYzC8T1IysG1bcvxvIO4qtYR/D3A991F";
   const MAX_SCREENSHOT_BYTES = 20 * 1024 * 1024;
@@ -3002,7 +3004,19 @@
     if (typeof globalThis.createImageBitmap !== "function" || !document?.createElement) return null;
     let bitmap = null;
     try {
-      bitmap = await globalThis.createImageBitmap(file);
+      const bitmapPromise = Promise.resolve(globalThis.createImageBitmap(file));
+      try {
+        bitmap = await withTimeout(
+          bitmapPromise,
+          SCREENSHOT_ACCENT_TIMEOUT_MS,
+          "Optional screenshot color analysis timed out."
+        );
+      } catch (error) {
+        void bitmapPromise.then((lateBitmap) => {
+          if (lateBitmap && typeof lateBitmap.close === "function") lateBitmap.close();
+        }).catch(() => {});
+        throw error;
+      }
       if (!bitmap?.width || !bitmap?.height) return null;
       const canvas = document.createElement("canvas");
       const context = typeof canvas.getContext === "function" ? canvas.getContext("2d", { willReadFrequently: true }) : null;
@@ -3010,7 +3024,7 @@
       const width = 160;
       const sourceY = Math.floor(bitmap.height * 0.34);
       const sourceHeight = Math.max(1, bitmap.height - sourceY);
-      const height = Math.max(80, Math.round(width * sourceHeight / bitmap.width));
+      const height = Math.min(SCREENSHOT_ACCENT_MAX_HEIGHT, Math.max(80, Math.round(width * sourceHeight / bitmap.width)));
       canvas.width = width;
       canvas.height = height;
       context.drawImage(bitmap, 0, sourceY, bitmap.width, sourceHeight, 0, 0, width, height);
@@ -3048,12 +3062,13 @@
       evidence: Array.isArray(platformResult?.evidence) ? [...platformResult.evidence] : []
     };
     if (!visualEvidence) return result;
+    const hasTextConflict = result.evidence.some((item) => /^conflicting\b/i.test(String(item || "")));
     const accentLabel = `${visualEvidence.color} interface accent`;
     if (visualEvidence.platform) {
       if (result.platform === visualEvidence.platform) {
         result.platformConfidence = Math.min(99, Math.max(result.platformConfidence || 0, visualEvidence.confidence) + 6);
         result.evidence.push(accentLabel);
-      } else if (allowVisualSelection && (!result.platform || (result.platformConfidence || 0) < 58)) {
+      } else if (!hasTextConflict && allowVisualSelection && (!result.platform || (result.platformConfidence || 0) < 58)) {
         result.platform = visualEvidence.platform;
         result.platformConfidence = Math.min(76, visualEvidence.confidence);
         result.evidence = [accentLabel];
@@ -3725,6 +3740,8 @@
       [/\bfast\s*pay\b/i, 4, "Fast Pay"],
       [/\bhotspot/i, 3, "hotspots"],
       [/\bdash\b/i, 3, "Dash"],
+      [/\bdeliver\s+by\b/i, 5, "Deliver by"],
+      [/\bcustomer\s+drop[ -]?off\b/i, 6, "Customer dropoff"],
       [/\bguaranteed\b/i, 2, "Guaranteed"],
       [/\bdecline\b/i, 2, "Decline"]
     ],
@@ -3739,6 +3756,8 @@
       [/\buber\s*one\b/i, 6, "Uber One"],
       [/\bdelivery\s*partner\b/i, 5, "delivery partner"],
       [/\buber\b/i, 5, "Uber"],
+      [/\bexclusive\b/i, 5, "Exclusive"],
+      [/\bguaranteed\s*\(?\s*incl\.?\s*tip\s*\)?/i, 4, "Guaranteed incl. tip"],
       [/\bincludes?\s*(?:a\s*)?trip\b/i, 4, "included trip"],
       [/\bgo\s*offline\b/i, 2, "go offline"],
       [/\btrip\b/i, 2, "Trip"]
@@ -3797,6 +3816,37 @@
     [/\btrip\s*(?:request|radar)\b/i, { "DoorDash": -3, "Grubhub": -3 }]
   ];
 
+  const platformQualificationRules = Object.freeze({
+    "DoorDash": (source) => /\b(?:doordash|door\s*dash|dasher|red\s*card|dasher\s*direct|peak\s*pay|earn\s*by\s*time|earn\s*per\s*offer|dash\s*now|fast\s*pay)\b/i.test(source)
+      || (/\bdeliver\s+by\b/i.test(source) && /\bcustomer\s+drop[ -]?off\b/i.test(source)),
+    "Uber Eats": (source) => /\b(?:uber\s*eats|ubereats|trip\s*radar|accept\s*request|trip\s*request|trip\s*supplement|uber\s*one)\b/i.test(source)
+      || (/\bexclusive\b/i.test(source) && /\b(?:total|guaranteed\s*\(?\s*incl\.?\s*tip)\b/i.test(source)),
+    "Grubhub": (source) => /\b(?:grubhub|grub\s*hub)\b/i.test(source)
+      || (/\bdiner\b/i.test(source) && /\baccept\s*offer\b/i.test(source)),
+    "Instacart": (source) => /\binstacart\b/i.test(source)
+      || /\bfull[-\s]*service\s*(?:shop|batch)\b/i.test(source)
+      || (/\bshopper\b/i.test(source) && /\bbatch\b/i.test(source)),
+    "Amazon Flex": (source) => /\bamazon\s*flex\b/i.test(source)
+      || /\bflex\s*app\b/i.test(source)
+      || (/\bdelivery\s*block\b/i.test(source) && /\bsub[-\s]*same[-\s]*day\b/i.test(source)),
+    "Spark": (source) => /\bspark\s*driver\b/i.test(source)
+      || (/\bspark\b/i.test(source) && /\b(?:offer|pickup|delivery|walmart|curbside|round\s*robin)\b/i.test(source))
+      || (/\bround\s*robin\b/i.test(source) && /\b(?:walmart|curbside)\b/i.test(source)),
+    "Roadie": (source) => /\broadie\b/i.test(source),
+    "Catering": (source) => /\b(?:ezcater|cater\s*valley|catering\s*order)\b/i.test(source)
+  });
+
+  const platformDirectIdentityRules = Object.freeze({
+    "DoorDash": /\b(?:doordash|door\s*dash|dasher)\b/i,
+    "Uber Eats": /\b(?:uber\s*eats|ubereats)\b/i,
+    "Grubhub": /\b(?:grubhub|grub\s*hub)\b/i,
+    "Instacart": /\binstacart\b/i,
+    "Amazon Flex": /\bamazon\s*flex\b/i,
+    "Spark": /\bspark(?:\s*driver)?\b/i,
+    "Roadie": /\broadie\b/i,
+    "Catering": /\b(?:ezcater|cater\s*valley)\b/i
+  });
+
   function detectPlatformDetailed(text) {
     const source = String(text || "");
     if (!source.trim()) return { platform: "", platformConfidence: 0, evidence: [], scores: {} };
@@ -3823,16 +3873,26 @@
       }
     }
 
-    const ranked = Object.entries(scores).filter(([, s]) => s > 0).sort((a, b) => b[1] - a[1]);
+    const ranked = Object.entries(scores)
+      .filter(([platform, score]) => score > 0 && platformQualificationRules[platform]?.(source))
+      .sort((a, b) => b[1] - a[1]);
     if (!ranked.length) return { platform: "", platformConfidence: 0, evidence: [], scores };
+
+    const directBrandPlatforms = ranked.filter(([platform]) => platformDirectIdentityRules[platform]?.test(source));
+    if (directBrandPlatforms.length > 1) {
+      return { platform: "", platformConfidence: 0, evidence: ["conflicting app identities"], scores };
+    }
 
     const [topPlatform, topScore] = ranked[0];
     const runnerUp = ranked[1] ? ranked[1][1] : 0;
     const margin = topScore - runnerUp;
+    const hasBrandHit = Boolean(platformDirectIdentityRules[topPlatform]?.test(source));
+    if (!hasBrandHit && ranked.length > 1 && margin < 3) {
+      return { platform: "", platformConfidence: 0, evidence: ["conflicting workflow evidence"], scores };
+    }
     let confidence = Math.min(99, Math.round(
       Math.min(topScore, 12) / 12 * 65 + Math.min(margin, 10) / 10 * 34
     ));
-    const hasBrandHit = (evidenceByPlatform[topPlatform] || []).some((h) => h.weight >= 9);
     if (hasBrandHit) confidence = Math.max(confidence, 88);
 
     const evidence = (evidenceByPlatform[topPlatform] || [])
